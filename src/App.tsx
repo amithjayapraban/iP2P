@@ -52,12 +52,12 @@ function App() {
     ],
   };
   const baseURL = production
-    ? "https://p2p-five.vercel.app"
+    ? "https://pr2pr.vercel.app"
     : "http://192.168.29.21:3001";
   var peerConnection = useRef(new RTCPeerConnection(configuration));
   useEffect(() => {
     const username = generateUsername("-");
-    
+
     if (window.location.pathname !== "/") {
       let p = window.location.pathname.slice(1);
       myname.current = p;
@@ -68,7 +68,7 @@ function App() {
       const search: any = document.querySelector(".search");
       search.classList.toggle("hidden");
       document.querySelector(".fileinput")?.classList.add("hidden");
-  
+
       document.querySelector(".recieve_btn")?.classList.toggle("hidden");
       // Recieve();
     }
@@ -341,7 +341,6 @@ function App() {
         P2P <br />
         Sharing <br />
         made easy.
-
         {roomId ? (
           <div className="bg-transparent self-end justify-self-end w-[min-content] h-[min-content]">
             <QRCode
@@ -353,7 +352,7 @@ function App() {
           </div>
         ) : null}
       </p>
-     
+
       <div className=" bg-b p-2 md:p-4 rounded-[35px]  inline-flex items-center gap-1 md:mr-6 justify-self-center self-center md:self-center myname md:justify-self-end text-white font-mono ">
         <img
           className="w-6 h-6 md:w-8 md:h-8 rounded-full "
@@ -411,9 +410,7 @@ function App() {
           maxWidth: 64,
           width: "100%",
         }}
-      >
-   
-      </div>
+      ></div>
 
       {/* <span className="hidden md:flex  h-full"></span> */}
       <p className="foot md:absolute md:bottom-[1%]   md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
