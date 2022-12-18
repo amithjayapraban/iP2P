@@ -27,7 +27,7 @@ function App() {
   const usersList = useRef([""]);
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
-  const production = false;
+  const production = true;
 
   const firebaseConfig = {
     apiKey: "AIzaSyBo0rfvxWk-ONJwxR-9s_p10F4tgHIlt2A",
