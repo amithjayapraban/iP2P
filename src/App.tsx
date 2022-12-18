@@ -52,7 +52,7 @@ function App() {
     ],
   };
   const baseURL = production
-    ? "https://pr2pr.vercel.app"
+    ? window.location.hostname
     : "http://192.168.29.21:3001";
   var peerConnection = useRef(new RTCPeerConnection(configuration));
   useEffect(() => {
