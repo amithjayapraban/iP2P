@@ -37,6 +37,10 @@ body {
 @keyframes pl1 {
     100% {box-shadow: 0 0 0 30px #0000}
 }
+input[type="file"] {
+  display: none;
+}
+
 .home{
   display: grid;
   grid-template-rows:.3fr 3fr 2fr 1fr ;

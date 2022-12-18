@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "downloadjs": "^1.4.7",
     "firebase": "^9.14.0",
     "generate-avatar": "^1.4.10",
     "react": "^18.2.0",
@@ -21,6 +22,7 @@
     "vite-plugin-pwa": "^0.13.3"
   },
   "devDependencies": {
+    "@types/downloadjs": "^1.4.3",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@types/simple-peer": "^9.11.5",

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
+import download from "downloadjs";
 import io, { Socket } from "socket.io-client";
 import streamSaver from "streamsaver";
 import Peer from "simple-peer";
@@ -51,43 +52,63 @@ function App() {
     ],
   };
   const baseURL = production
-    ? "https://sorah-amithjayapraban.koyeb.app"
-    : "http://localhost:9000";
+    ? "https://p2p-five.vercel.app"
+    : "http://192.168.29.21:3001";
   var peerConnection = useRef(new RTCPeerConnection(configuration));
   useEffect(() => {
     const username = generateUsername("-");
-    username ? (myname.current = username) : null;
+    
     if (window.location.pathname !== "/") {
-     
+      let p = window.location.pathname.slice(1);
+      myname.current = p;
       const btn: any = document.querySelectorAll(".btn");
       btn.forEach((i: any) => {
         i.classList.add("hidden");
       });
       const search: any = document.querySelector(".search");
       search.classList.toggle("hidden");
+      document.querySelector(".fileinput")?.classList.add("hidden");
+  
       document.querySelector(".recieve_btn")?.classList.toggle("hidden");
       // Recieve();
+    }
+    if (window.location.pathname == "/") {
+      username ? (myname.current = username) : null;
+      document.querySelector(".fileinput")?.classList.remove("hidden");
+      createRoom();
     }
   }, []);
 
   const dataChannel = peerConnection.current.createDataChannel("mydata");
-  dataChannel.addEventListener("open", (event) => {
-    // let messag = "helloooo";
-    // dataChannel.send(messag);
-    // console.log("msg sent");
-  });
+  dataChannel.addEventListener("open", (event) => {});
+  var file: any;
+  const fileAdd = (e: any) => {
+    e.preventDefault();
+    file = e.target.files[0];
+    console.log(file.arrayBuffer(), "bbufer");
+
+    // console.log(e.target.files[0]);
+  };
   const Sendmsg = (e: any) => {
     e.preventDefault();
-    const message = "hello from sender";
-    console.log("msg sent .....");
-    dataChannel.send(message);
+
+    file.arrayBuffer().then((buffer: any) => {
+      const chunkSize = 16 * 1024;
+      while (buffer.byteLength) {
+        const chunk = buffer.slice(0, chunkSize);
+        buffer = buffer.slice(chunkSize, buffer.byteLength);
+        dataChannel.send(chunk);
+      }
+      var type = { type: file.type };
+      dataChannel.send(type.toString());
+      dataChannel.send("completed");
+    });
   };
 
   async function createRoom() {
-    
     const offer = await peerConnection.current.createOffer();
     await peerConnection.current.setLocalDescription(offer);
-    document.querySelector(".pulsing")?.classList.toggle("hidden");
+
     console.log(peerConnection.current.localDescription);
     try {
       const docRef = await addDoc(collection(db, "room"), {
@@ -101,7 +122,7 @@ function App() {
     } catch (e) {
       console.error("Error adding document: ", e);
     }
-    document.querySelector(".send_btn")?.classList.toggle("hidden");
+    // document.querySelector(".send_btn")?.classList.toggle("hidden");
   }
 
   const q = query(
@@ -237,21 +258,36 @@ function App() {
     });
   };
 
-  
-  peerConnection_client.current.ondatachannel=(e:any)=>{
-    console.log(e,"data cahnel on client");
-    var clientDc:any=e.channel;
+  peerConnection_client.current.ondatachannel = (e: any) => {
+    console.log(e, "data cahnel on client");
+    var clientDc: any = e.channel;
 
-    console.log(clientDc,"clientdc")
+    console.log(clientDc, "clientdc");
+    const fileChunks: any = [];
+    clientDc.addEventListener("message", (e: any) => {
+      if (e.data.toString() === "completed") {
+        // Once, all the chunks are received, combine them to form a Blob
+        const file = new Blob(fileChunks);
 
-    clientDc.addEventListener('message',(e:any)=>{
-      alert(e.data);
-      console.log(e.data,"msg from sendedr");
-    })
-  }
+        console.log("Received", file);
+        // const img:any=document.querySelector(".recieved_img");
+        // img.src=URL.createObjectURL(file);
+        download(file, "downloaded.jpeg");
+        const myFile = new File([file], "image.jpeg", {
+          type: "image",
+        });
 
- 
- 
+        // window.open(URL.createObjectURL(file));
+        // console.log(myFile, "filr");
+      } else {
+        // Keep appending various file chunks
+        fileChunks.push(e.data);
+      }
+
+      console.log(e.data, "msg from sendedr");
+    });
+  };
+
   // const dataReciever = peerConnection_client.current.createDataChannel("mydata");
   // dataReciever.addEventListener("message", (event) => {
   //   console.log("msg from")
@@ -266,7 +302,7 @@ function App() {
     var name: any = { name_rem: myname };
   }
   return (
-    <div className="home  bg-b max-h-screen overflow-hidden  ">
+    <div className="home  bg-b h-screen overflow-hidden  ">
       <svg
         className="logo  flex justify-items-start items-start  md:m-6 m-3   md:scale-[.71] scale-[.7] origin-top-left  "
         width="59"
@@ -301,12 +337,23 @@ function App() {
 <rect width="2.89146" height="7.13322" transform="matrix(0.876629 -0.481167 0.744668 0.667435 24 28.4557)" fill="#fffff"/>
 </svg> */}
 
-      <p className="md:ml-6 ml-3 self-center md:self-start banner md:text-7xl text-5xl   text-gray-200">
+      <p className="md:ml-6 ml-3 self-center md:self-start banner md:text-7xl text-5xl flex gap-3 text-gray-200">
         P2P <br />
         Sharing <br />
         made easy.
-      </p>
 
+        {roomId ? (
+          <div className="bg-transparent self-end justify-self-end w-[min-content] h-[min-content]">
+            <QRCode
+              size={100}
+              style={{}}
+              value={`${baseURL}/${roomId}`}
+              viewBox={`0 0 100 100`}
+            />
+          </div>
+        ) : null}
+      </p>
+     
       <div className=" bg-b p-2 md:p-4 rounded-[35px]  inline-flex items-center gap-1 md:mr-6 justify-self-center self-center md:self-center myname md:justify-self-end text-white font-mono ">
         <img
           className="w-6 h-6 md:w-8 md:h-8 rounded-full "
@@ -314,19 +361,28 @@ function App() {
         />
         {myname ? myname.current : ""}
       </div>
+      {/* <img src="" className="recieved_img absolute z-" width="400" height="400" alt="pic" /> */}
       <div className=" md:mr-6 self-start controls transition-[1] md:w-[450px] lg:w-[650px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-3 flex-col md:flex-row rounded-t-[35px] md:rounded-[35px]  ">
-        <button
-          className="btn send_btn shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g text-2xl text-white px-5 py-3 rounded-[25px] min-w-[150px] "
-          onClick={createRoom}
-        >
-          Send
-        </button>
-        <button
+        <label className="custom-file-upload fileinput   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-lb  text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px]">
+          Choose File
+          <input
+            type="file"
+            className="send"
+            onChange={(e: any) => fileAdd(e)}
+          />
+        </label>
+        {/* <button
           id="sendButton"
           className="btn shadow-[1px_1px_20px_-15px_rgba(20,220,220,.51)] bg-b text-gray-300 text-2xl  px-5 py-3 rounded-[25px] min-w-[150px] "
           onClick={Sendmsg}
         >
           send msg
+        </button> */}
+        <button
+          className="btn send_btn shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px] "
+          onClick={Sendmsg}
+        >
+          Send
         </button>
         <button
           id="recieve_btn"
@@ -356,14 +412,7 @@ function App() {
           width: "100%",
         }}
       >
-        {roomId ? (
-          <QRCode
-            size={256}
-            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-            value={`http://192.168.29.21:3001/${roomId}`}
-            viewBox={`0 0 256 256`}
-          />
-        ) : null}
+   
       </div>
 
       {/* <span className="hidden md:flex  h-full"></span> */}
