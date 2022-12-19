@@ -27,7 +27,8 @@ function App() {
   const usersList = useRef([""]);
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
-  const production = true;
+  const [connection, setConnection] = useState(false);
+  const production = false;
 
   const firebaseConfig = {
     apiKey: "AIzaSyBo0rfvxWk-ONJwxR-9s_p10F4tgHIlt2A",
@@ -57,7 +58,7 @@ function App() {
   var peerConnection = useRef(new RTCPeerConnection(configuration));
   useEffect(() => {
     const username = generateUsername("-");
-
+    window.document.title = "iP2P - Not Connected";
     if (window.location.pathname !== "/") {
       let p = window.location.pathname.slice(1);
       myname.current = p;
@@ -86,9 +87,12 @@ function App() {
     e.preventDefault();
     file = e.target.files[0];
     console.log(file.arrayBuffer(), "bbufer");
-
+    document.querySelector(".file_name")?.classList.remove("opacity-0");
+    let name: any = document.querySelector(".file_name");
+    name.innerHTML = file.name;
     // console.log(e.target.files[0]);
   };
+
   const Sendmsg = (e: any) => {
     e.preventDefault();
 
@@ -102,6 +106,14 @@ function App() {
       var type = { type: file.type };
       dataChannel.send(type.toString());
       dataChannel.send("completed");
+      let name: any = document.querySelector(".toast");
+      name.innerHTML = "Transfer Completed ⚡";
+      document.querySelector(".toast")?.classList.toggle("completed_animation");
+      setTimeout(() => {
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+      }, 3000);
     });
   };
 
@@ -164,7 +176,17 @@ function App() {
   peerConnection.current.addEventListener("connectionstatechange", (event) => {
     console.log(event, "sender connection events");
     if (peerConnection.current.connectionState === "connected") {
+      setConnection(true);
+      window.document.title = "iP2P - Connected!";
       console.log("peers cncted");
+      let name: any = document.querySelector(".toast");
+      name.innerHTML = "Connected ⚡";
+      document.querySelector(".toast")?.classList.toggle("completed_animation");
+      setTimeout(() => {
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+      }, 1000);
     }
   });
   const peerConnection_client = useRef(new RTCPeerConnection(configuration));
@@ -172,20 +194,25 @@ function App() {
   peerConnection_client.current.addEventListener(
     "connectionstatechange",
     (event) => {
-      console.log(event, "client connection events");
-      // if (peerConnection.connectionState === "connected") {
-      //   console.log("peers cncted");
-      // }
+      if (peerConnection_client.current.connectionState === "connected") {
+        setConnection(true);
+        window.document.title = "iP2P - Connected!";
+        console.log("peers cncted");
+        let name: any = document.querySelector(".toast");
+        name.innerHTML = "Connected ⚡";
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+        setTimeout(() => {
+          document
+            .querySelector(".toast")
+            ?.classList.toggle("completed_animation");
+        }, 1000);
+      }
     }
   );
 
   async function Recieve() {
-    // const btn: any = document.querySelectorAll(".btn");
-    // btn.forEach((i: any) => {
-    //   i.classList.add("hidden");
-    // });
-    // const search: any = document.querySelector(".search");
-    // search.classList.toggle("hidden");
     document.querySelector(".recieve_btn")?.classList.toggle("hidden");
     document.querySelector(".pulsing")?.classList.toggle("hidden");
     let p = window.location.pathname.slice(1);
@@ -234,6 +261,14 @@ function App() {
         peerConnection_client.current.addIceCandidate(JSON.parse(candidate));
       });
     });
+
+    const fetch: any = await getDocs(quer);
+    fetch.forEach(async (doc: any) => {
+      console.log("erererefcwedfe");
+      console.log(doc.data());
+      let candidate = doc.data().candidate;
+      peerConnection_client.current.addIceCandidate(JSON.parse(candidate));
+    });
   }
 
   peerConnection_client.current.onicecandidate = async (e) => {
@@ -277,6 +312,17 @@ function App() {
           type: "image",
         });
 
+        let name: any = document.querySelector(".toast");
+        name.innerHTML = "File recieved ⚡";
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+        setTimeout(() => {
+          document
+            .querySelector(".toast")
+            ?.classList.toggle("completed_animation");
+        }, 10000);
+
         // window.open(URL.createObjectURL(file));
         // console.log(myFile, "filr");
       } else {
@@ -288,36 +334,60 @@ function App() {
     });
   };
 
-  // const dataReciever = peerConnection_client.current.createDataChannel("mydata");
-  // dataReciever.addEventListener("message", (event) => {
-  //   console.log("msg from")
-  //   const message = event.data;
-  //   console.log(message, "msg from server");
-  // });
-  // dataChannel.addEventListener('open', event => {
-  //   // const message = event.data;
-  //   alert("open");
-  // });
   function close() {
     var name: any = { name_rem: myname };
   }
   return (
     <div className="home  bg-b h-screen overflow-hidden  ">
+      <div className="text-white toast completed_animation absolute top-3 md:top-[90%]  right-[25%] left-[25%] md:right-10  md:left-[unset] flex items-center justify-center  rounded-[25px] md:rounded-[5px] p-2 py-3 z-[999] text-xs bg-g ">
+        Transfer Completed ⚡
+      </div>
       <svg
-        className="logo  flex justify-items-start items-start  md:m-6 m-3   md:scale-[.71] scale-[.7] origin-top-left  "
+        className="logo  flex justify-items-start items-start  md:ml-6 md:mt-6 m-3   md:scale-[.71] scale-[.7] origin-top-left  "
         width="59"
         height="57"
         viewBox="0 0 128 128"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect x="8.67798" width="112.814" height="128" rx="4" fill="#3EF994" />
+        {connection ? (
+          <rect
+            x="8.67798"
+            width="112.814"
+            height="128"
+            rx="4"
+            fill="#3EF994"
+          />
+        ) : (
+          <rect x="8.67798" width="112.814" height="128" rx="4" fill="grey" />
+        )}
         <path
           opacity="0.8"
           d="M4.33902 8.49121C4.33902 6.28207 6.12988 4.49121 8.33902 4.49121H119.661C121.87 4.49121 123.661 6.28207 123.661 8.49121V104.526C123.661 110.049 119.184 114.526 113.661 114.526H14.339C8.81617 114.526 4.33902 110.049 4.33902 104.526V8.49121Z"
           fill="white"
         />
-        <rect y="8.98254" width="128" height="119.018" rx="4" fill="#3EF994" />
+        {connection ? (
+          <rect
+            y="8.98254"
+            width="128"
+            height="119.018"
+            rx="4"
+            fill="#3EF994"
+          />
+        ) : (
+          <rect y="8.98254" width="128" height="119.018" rx="4" fill="grey" />
+        )}
+        {connection ? (
+          <rect
+            y="8.98254"
+            width="128"
+            height="119.018"
+            rx="4"
+            fill="#3EF994"
+          />
+        ) : (
+          <rect y="8.98254" width="128" height="119.018" rx="4" fill="grey" />
+        )}
         <path
           d="M40.9948 99.8066L65.6429 66.1838L81.2224 77.1493L40.9948 99.8066Z"
           fill="white"
@@ -337,45 +407,52 @@ function App() {
 <rect width="2.89146" height="7.13322" transform="matrix(0.876629 -0.481167 0.744668 0.667435 24 28.4557)" fill="#fffff"/>
 </svg> */}
 
-      <p className="md:ml-6 ml-3 self-center md:self-start banner md:text-7xl text-4xl flex gap-3 text-gray-200">
-        P2P <br />
-        Sharing <br />
-        made easy.
+      <div className="md:ml-6 ml-3 flex-wrap break-words md:items-center md:w-[80%] md:mr-6 h-full md:h-[max-content]  md:self-end justify-between md:justify-start py-4   banner md:text-6xl w-full text-4xl flex flex-col md:flex-row gap-6 md:gap-6 text-gray-200">
+        <span className="flex flex-col w-[min-content] break-words">
+          {" "}
+          P2P <br />
+          Sharing <br />
+          made easy.
+        </span>
         {roomId ? (
-         <> 
-      <div className="bg-transparent self-end justify-self-end hidden md:flex  h-[min-content]">
-            <QRCode
-              size={100}
-              style={{}}
-              value={`${baseURL}/${roomId}`}
-              viewBox={`0 0 100 100`}
-            />
-          </div>
-             <div className="bg-transparent self-end justify-self-end md:hidden  h-[min-content]">
-            <QRCode
-            size={50}
-              style={{}}
-              value={`${baseURL}/${roomId}`}
-              viewBox={`0 0 50 50`}
-            />
-          </div>
-          
+          <>
+            <div className="bg-transparent self-end justify-self-end hidden md:flex  h-[min-content]">
+              <QRCode
+                size={100}
+                style={{}}
+                value={`${baseURL}/${roomId}`}
+                viewBox={`0 0 100 100`}
+              />
+            </div>
+            <div className="bg-transparent  ml-[-.75rem] self-center justify-self-end md:hidden  h-[min-content]">
+              <QRCode
+                size={80}
+                style={{}}
+                value={`${baseURL}/${roomId}`}
+                viewBox={`0 0 80 80`}
+              />
+            </div>
           </>
-          
-          
-          
         ) : null}
-      </p>
+      </div>
 
-      <div className=" bg-b p-2 md:p-4 rounded-[35px]  inline-flex items-center gap-1 md:mr-6 justify-self-center self-center md:self-center myname md:justify-self-end text-white font-mono ">
+      <div className="md:justify-self-end justify-self-center   md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
+        {/* {connection ? (
+          cc
+        ) : (
+          <span className="bg-red-500 w-5 justify-self-start rounded-full h-5"></span>
+        )} */}
+        {/* 
+        <span className="inline-flex items-center gap-4"> */}
         <img
           className="w-6 h-6 md:w-8 md:h-8 rounded-full "
           src={`data:image/svg+xml;utf8,${generateFromString(myname.current)}`}
         />
         {myname ? myname.current : ""}
+        {/* </span> */}
       </div>
       {/* <img src="" className="recieved_img absolute z-" width="400" height="400" alt="pic" /> */}
-      <div className=" md:mr-6 self-start controls transition-[1] md:w-[450px] lg:w-[650px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-3 flex-col md:flex-row rounded-t-[35px] md:rounded-[35px]  ">
+      <div className=" md:mr-6 self-start md:self-end w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-6 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  ">
         <label className="custom-file-upload fileinput   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-lb  text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px]">
           Choose File
           <input
@@ -384,6 +461,7 @@ function App() {
             onChange={(e: any) => fileAdd(e)}
           />
         </label>
+        <span className="file_name text-xs text-gray-200 opacity-0">""</span>
         {/* <button
           id="sendButton"
           className="btn shadow-[1px_1px_20px_-15px_rgba(20,220,220,.51)] bg-b text-gray-300 text-2xl  px-5 py-3 rounded-[25px] min-w-[150px] "
@@ -404,19 +482,12 @@ function App() {
         >
           Recieve
         </button>
+
         <div className=" flex  flex-col gap-8 justify-center items-center search text-2xl text-gray-300">
           <div className="hidden pulsing self-center"></div>
-          {/* <div className="flex flex-col gap-3 users hidden items-center  ">
-            {usersList.current.map((i: any) => {
-              return (
-                <button className="self-start  bg-g px-2 py-2  rounded-[5px] text-gray-600">
-                  {i}
-                </button>
-              );
-            })}
-          </div> */}
         </div>
       </div>
+
       <div
         style={{
           height: "auto",

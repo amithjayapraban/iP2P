@@ -43,7 +43,8 @@ input[type="file"] {
 
 .home{
   display: grid;
-  grid-template-rows:.3fr 3fr 2fr 1fr ;
+  width: 100%;
+  grid-template-rows:.2fr 3fr 2fr 1fr ;
  grid-template-areas: "logo"
                         "banner"
                         "myname"
@@ -65,14 +66,29 @@ input[type="file"] {
     .controls{
       grid-area: controls;
     }
+    .completed_animation{
+      transition: all 2s linear;
+      top:-100% !important;
+    }
+
 @media (min-width:768px) {
   .home{
-    grid-template-rows:1fr 1fr 3fr 1fr;
-  grid-template-columns:3fr 2fr;
+    grid-template-rows:.2fr .001fr 1.3fr 1fr;
+   
+  grid-template-columns:3fr 3fr;
   grid-template-areas: "logo logo"
                         "myname myname"
                         "banner controls"
                         
                         ;
 }
+
+.completed_animation{
+  transition: all 2s linear;
+  right:-100% !important;
+
+  left:inherit !important;
+  top:90% !important;
+}
+
 }
