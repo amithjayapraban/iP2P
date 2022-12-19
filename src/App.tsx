@@ -337,12 +337,13 @@ function App() {
 <rect width="2.89146" height="7.13322" transform="matrix(0.876629 -0.481167 0.744668 0.667435 24 28.4557)" fill="#fffff"/>
 </svg> */}
 
-      <p className="md:ml-6 ml-3 self-center md:self-start banner md:text-7xl text-5xl flex gap-3 text-gray-200">
+      <p className="md:ml-6 ml-3 self-center md:self-start banner md:text-7xl text-4xl flex gap-3 text-gray-200">
         P2P <br />
         Sharing <br />
         made easy.
         {roomId ? (
-          <div className="bg-transparent self-end justify-self-end w-[min-content] h-[min-content]">
+         <> 
+      <div className="bg-transparent self-end justify-self-end hidden md:flex  h-[min-content]">
             <QRCode
               size={100}
               style={{}}
@@ -350,6 +351,19 @@ function App() {
               viewBox={`0 0 100 100`}
             />
           </div>
+             <div className="bg-transparent self-end justify-self-end md:hidden  h-[min-content]">
+            <QRCode
+            size={50}
+              style={{}}
+              value={`${baseURL}/${roomId}`}
+              viewBox={`0 0 50 50`}
+            />
+          </div>
+          
+          </>
+          
+          
+          
         ) : null}
       </p>
 
