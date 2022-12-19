@@ -28,7 +28,7 @@ function App() {
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
-  const production = false;
+  const production = true;
 
   const firebaseConfig = {
     apiKey: "AIzaSyBo0rfvxWk-ONJwxR-9s_p10F4tgHIlt2A",
@@ -338,12 +338,31 @@ function App() {
     var name: any = { name_rem: myname };
   }
   return (
-    <div className="home  bg-b h-screen overflow-hidden  ">
-      <div className="text-white toast completed_animation absolute top-3 md:top-[90%]  right-[25%] left-[25%] md:right-10  md:left-[unset] flex items-center justify-center  rounded-[25px] md:rounded-[5px] p-2 py-3 z-[999] text-xs bg-g ">
+    <div className="home relative bg-b h-screen overflow-hidden  ">
+      <div className="text-white toast completed_animation absolute top-3 md:top-[90%]  right-[25%] left-[25%] md:right-10  md:left-[unset] flex items-center justify-center  rounded-[25px] md:rounded-[5px] p-2 py-3 z-[66] text-xs bg-g ">
         Transfer Completed ⚡
       </div>
+
+      <div className=" cursor-pointer  q text-white self-center justify-self-end w-6 h-6  bg-gray-400 rounded-full flex justify-center items-center md:mr-6 mr-3" onClick={()=>document.querySelector(".info")?.classList.remove("hidden")}>
+        ?
+      </div>
+      <div className="info hidden   backdrop-blur bg-lb  shadow-3xl text-white p-3 py-6  rounded-[10px] break-words md:max-w-[40vw] max-w-[80vw] md:right-5 right-2 md:top-6 top-5 absolute z-[99]">
+        <div className="flex  absolute top-2 w-4 h-4 justify-center items-center p-0 bg-red-600 rounded-full right-2 z-[999]]  " onClick={()=>document.querySelector(".info")?.classList.add("hidden")} ></div>
+        <ol className="px-6 text-[.9rem] flex flex-col gap-1" >
+        <li> 1. Scan the QR Code 🔍</li>
+        
+        {/* [ Or just add the name to the end of the URL ]<br /> */}
+        <li> 2. Click  Recieve  📂</li>
+        <li> 3.  You're now connected ⚡</li>
+
+         {/* <li>  Choose a file. </li>
+        <li>  Hit Send button.</li> */}
+        </ol>
+        <p className=" px-6 mt-4 text-gray-100 text-xs"> Can't scan QR Code? Just add the name at the end of the URL 😀 </p>
+       
+      </div>
       <svg
-        className="logo  flex justify-items-start items-start  md:ml-6 md:mt-6 m-3   md:scale-[.71] scale-[.7] origin-top-left  "
+        className="logo  flex justify-items-start  items-start  self-end md:ml-6 md:mt-6 ml-3 mt-3  md:scale-[.71] scale-[.7] origin-top-left  "
         width="59"
         height="57"
         viewBox="0 0 128 128"
@@ -359,7 +378,13 @@ function App() {
             fill="#3EF994"
           />
         ) : (
-          <rect x="8.67798" width="112.814" height="128" rx="4" fill="grey" />
+          <rect
+            x="8.67798"
+            width="112.814"
+            height="128"
+            rx="4"
+            fill="#9CA38F"
+          />
         )}
         <path
           opacity="0.8"
@@ -375,7 +400,13 @@ function App() {
             fill="#3EF994"
           />
         ) : (
-          <rect y="8.98254" width="128" height="119.018" rx="4" fill="grey" />
+          <rect
+            y="8.98254"
+            width="128"
+            height="119.018"
+            rx="4"
+            fill="#9CA38F"
+          />
         )}
         {connection ? (
           <rect
@@ -386,7 +417,13 @@ function App() {
             fill="#3EF994"
           />
         ) : (
-          <rect y="8.98254" width="128" height="119.018" rx="4" fill="grey" />
+          <rect
+            y="8.98254"
+            width="128"
+            height="119.018"
+            rx="4"
+            fill="#9CA38F"
+          />
         )}
         <path
           d="M40.9948 99.8066L65.6429 66.1838L81.2224 77.1493L40.9948 99.8066Z"
@@ -410,7 +447,7 @@ function App() {
       <div className="md:ml-6 ml-3 flex-wrap break-words md:items-center md:w-[80%] md:mr-6 h-full md:h-[max-content]  md:self-end justify-between md:justify-start py-4   banner md:text-6xl w-full text-4xl flex flex-col md:flex-row gap-6 md:gap-6 text-gray-200">
         <span className="flex flex-col w-[min-content] break-words">
           {" "}
-          P2P <br />
+          iP2P. <br />
           Sharing <br />
           made easy.
         </span>
@@ -498,7 +535,7 @@ function App() {
       ></div>
 
       {/* <span className="hidden md:flex  h-full"></span> */}
-      <p className="foot md:absolute md:bottom-[1%]   md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
+      <p className="foot md:absolute md:bottom-[2%]   md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
         Made with ❤️ by amithjayapraban
       </p>
     </div>
