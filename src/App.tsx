@@ -44,12 +44,30 @@ function App() {
   const db = getFirestore(app);
   var configuration = {
     iceServers: [
+      
       { urls: "stun:stun.stunprotocol.org" },
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
       { urls: "stun:stun3.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" }, {
+        urls: "stun:relay.metered.ca:80",
+      },
+      {
+        urls: "turn:relay.metered.ca:80",
+        username: "74870fb3c3ec1f61f125f81c",
+        credential: "8BpwyFdt3grieB05",
+      },
+      {
+        urls: "turn:relay.metered.ca:443",
+        username: "74870fb3c3ec1f61f125f81c",
+        credential: "8BpwyFdt3grieB05",
+      },
+      {
+        urls: "turn:relay.metered.ca:443?transport=tcp",
+        username: "74870fb3c3ec1f61f125f81c",
+        credential: "8BpwyFdt3grieB05",
+      },
     ],
   };
   const baseURL = production
