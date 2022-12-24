@@ -412,7 +412,7 @@ function App() {
           Can't scan QR Code? Just add the name at the end of the URL 😀{" "}
         </p>
       </div>
-      <svg
+      <svg onClick={()=>{ window.location.assign(baseURL)}}
         className="logo  flex justify-items-start  items-start  self-end md:ml-6 md:mt-6 ml-3 mt-3  md:scale-[.71] scale-[.7] origin-top-left  "
         width="59"
         height="57"
