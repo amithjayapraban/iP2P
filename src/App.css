@@ -82,13 +82,17 @@ input[type="file"] {
 
 @media (min-width: 768px) {
   .home {
-    grid-template-rows: 0.2fr 0.001fr 1.3fr 1fr;
+    grid-template-rows: 0.2fr .2fr 3fr 1fr;
 
     grid-template-columns: 3fr 3fr;
     grid-template-areas:
       "logo q"
       "myname myname"
       "banner controls";
+  }
+  .md_brand{
+    grid-area: myname;
+    grid-column-start: 1;
   }
   .q{
     grid-area: q;

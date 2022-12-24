@@ -108,12 +108,10 @@ function App() {
     document.querySelector(".file_name")?.classList.remove("opacity-0");
     let name: any = document.querySelector(".file_name");
     name.innerHTML = file.name;
-    // console.log(e.target.files[0]);
   };
 
   const Sendmsg = (e: any) => {
     e.preventDefault();
-
     file.arrayBuffer().then((buffer: any) => {
       const chunkSize = 16 * 1024;
       while (buffer.byteLength) {
@@ -124,6 +122,7 @@ function App() {
       var type = { type: file.type };
       dataChannel.send(type.toString());
       dataChannel.send("completed");
+      file = undefined;
       let name: any = document.querySelector(".toast");
       name.innerHTML = "Transfer Completed ⚡";
       document.querySelector(".toast")?.classList.toggle("completed_animation");
@@ -239,7 +238,6 @@ function App() {
     const queryGet: any = await getDocs(q);
     queryGet.forEach(async (doc: any) => {
       if (doc.data()) {
-        // console.log(doc.data().offer, "doc data");
         peerConnection_client.current.setRemoteDescription(
           new RTCSessionDescription(JSON.parse(doc.data().offer))
         );
@@ -259,7 +257,6 @@ function App() {
             name: `${p}_`,
           });
           console.log("Document written with ID: ", docRef.id);
-          // setDocId(docRef.id);
         } catch (e) {
           console.error("Error adding document: ", e);
         }
@@ -465,25 +462,18 @@ function App() {
         />
       </svg>
 
-      {/* <svg className='m-6 md:m-0 row-start-0 row-end-1  col-start-1 col-end-1 w-[min-content]  md:scale-[1]  ' width="59" height="57" viewBox="0 0 59 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="4" width="52" height="57" rx="4" fill="#3EF994"/>
-<path opacity="0.8" d="M2 6C2 3.79086 3.79086 2 6 2H53C55.2091 2 57 3.79086 57 6V41C57 46.5228 52.5228 51 47 51H12C6.47715 51 2 46.5228 2 41V6Z" fill="#ffff"/>
-<rect y="4" width="59" height="53" rx="4" fill="#3EF994"/>
-<path d="M22.1355 37.1224L27.9873 29.4104L31.6861 31.9255L22.1355 37.1224Z" fill="#ffff"/>
-<path d="M33.18 23.6888L26.4775 30.6741L23.0935 27.7491L33.18 23.6888Z" fill="#ffff"/>
-<rect width="2.89146" height="7.13322" transform="matrix(0.876629 -0.481167 0.744668 0.667435 24 28.4557)" fill="#fffff"/>
-</svg> */}
-
-      <div className="md:ml-6 ml-3 flex-wrap break-words md:items-center md:w-[80%] md:mr-6 h-full md:h-[max-content]  md:self-end justify-between md:justify-start py-4   banner md:text-6xl w-full text-4xl flex flex-col md:flex-row gap-6 md:gap-6 text-gray-200">
-        <span className="flex flex-col w-[min-content] break-words">
+      <span className=" md:ml-6 hidden md:flex text-white md_brand flex-col md:self-start justify-end w-[max-content] ">
+        {" "}
+        <p className="text-2xl">iP2P </p>
+      </span>
+      <div className="md:ml-6 ml-3 flex-wrap  md:items-center md:w-[80%] md:mr-6 h-full md:justify-center  md:self-center md:h-[max-content] justify-between   md:py-0  banner  w-full text-4xl flex flex-col md:flex- row gap-6 md:gap-12 text-gray-200">
+        <span className="flex md_brand text-xl  md:hidden flex-col md:self-start justify-end w-[max-content] ">
           {" "}
-          iP2P. <br />
-          Sharing <br />
-          made easy.
+          <p>iP2P </p>
         </span>
         {roomId ? (
           <>
-            <div className="bg-transparent self-end justify-self-end hidden md:flex  h-[min-content]">
+            <div className="bg-lb p-4 self-center justify-self-end hidden md:flex md:rounded-[15px]  h-[min-content]">
               <QRCode
                 size={100}
                 style={{}}
@@ -491,7 +481,7 @@ function App() {
                 viewBox={`0 0 100 100`}
               />
             </div>
-            <div className="bg-transparent  ml-[-.75rem] self-center justify-self-end md:hidden  h-[min-content]">
+            <div className="bg-transparent  ml-[-1.5rem] self-center justify-self-end md:hidden  h-[min-content]">
               <QRCode
                 size={80}
                 style={{}}
@@ -504,13 +494,6 @@ function App() {
       </div>
 
       <div className="md:justify-self-end justify-self-center   md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
-        {/* {connection ? (
-          cc
-        ) : (
-          <span className="bg-red-500 w-5 justify-self-start rounded-full h-5"></span>
-        )} */}
-        {/* 
-        <span className="inline-flex items-center gap-4"> */}
         <img
           className="w-6 h-6 md:w-8 md:h-8 rounded-full "
           src={`data:image/svg+xml;utf8,${generateFromString(myname.current)}`}
@@ -519,7 +502,7 @@ function App() {
         {/* </span> */}
       </div>
       {/* <img src="" className="recieved_img absolute z-" width="400" height="400" alt="pic" /> */}
-      <div className=" md:mr-6 self-start md:self-end w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-6 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  ">
+      <div className=" md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-6 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  ">
         <label className="custom-file-upload fileinput   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-lb  text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px]">
           Choose File
           <input
@@ -565,7 +548,7 @@ function App() {
       ></div>
 
       {/* <span className="hidden md:flex  h-full"></span> */}
-      <p className="foot md:absolute md:bottom-[2%]   md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
+      <p className="foot md:absolute md:bottom-[2%] py-2 md:py-0  md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
         Made with ❤️ by amithjayapraban
       </p>
     </div>
