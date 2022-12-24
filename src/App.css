@@ -111,6 +111,9 @@ background:radial-gradient()
       "myname myname"
       "banner controls";
   }
+  .myname {
+    grid-area: banner;
+  }
   .md_brand{
     grid-area: myname;
     grid-column-start: 1;

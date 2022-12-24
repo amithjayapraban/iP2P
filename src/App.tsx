@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import reactLogo from "./assets/react.svg";
 import "./App.css";
 import download from "downloadjs";
-import io, { Socket } from "socket.io-client";
-import streamSaver from "streamsaver";
-import Peer from "simple-peer";
 import { generateUsername } from "unique-username-generator";
 import { initializeApp } from "firebase/app";
 import { generateFromString } from "generate-avatar";
@@ -108,9 +104,13 @@ function App() {
     console.log(file, "file");
     var prog: any = document.getElementById("progress");
     prog.style.width = `0%`;
-    document.querySelector(".file_name")?.classList.remove("opacity-0");
-    let name: any = document.querySelector(".file_name");
-    name.innerHTML = file.name;
+    // document.querySelector(".file_name")?.classList.remove("opacity-0");
+    let name: any = document.querySelectorAll(".file_name");
+    name.forEach((element: any) => {
+      element.classList.remove("opacity-0");
+      console.log(element);
+      element.innerHTML = file.name;
+    });
   };
 
   const Sendmsg = (e: any) => {
@@ -167,7 +167,6 @@ function App() {
     } catch (e) {
       console.error("Error adding document: ", e);
     }
-    // document.querySelector(".send_btn")?.classList.toggle("hidden");
   }
 
   const q = query(
@@ -182,7 +181,6 @@ function App() {
         new RTCSessionDescription(JSON.parse(doc.data().offer))
       );
       let candidate = doc.data().candidate;
-      // console.log(candidate, "candid on sender");
 
       peerConnection.current.addIceCandidate(JSON.parse(candidate));
     });
@@ -338,10 +336,7 @@ function App() {
       if (e.data.toString()) {
         if (e.data.toString() !== "completed") {
           type.current = e.data.toString();
-
-          // console.log(type.current, "type");
         }
-        // console.log(e.data.toString().slice(5,e.data.toString().length), "type of file");
       }
       if (e.data.toString() === "completed") {
         const file = new Blob(fileChunks);
@@ -349,7 +344,7 @@ function App() {
         console.log("Received", file);
 
         let t = type.current.split("/");
-        //  console.log(t,"type aftre");
+
         download(file, `downloaded.${t[1]}`);
 
         let name: any = document.querySelector(".toast");
@@ -362,9 +357,6 @@ function App() {
             .querySelector(".toast")
             ?.classList.toggle("completed_animation");
         }, 10000);
-
-        // window.open(URL.createObjectURL(file));
-        // console.log(myFile, "filr");
       } else {
         fileChunks.push(e.data);
       }
@@ -383,14 +375,17 @@ function App() {
       </div>
 
       <div
-        className=" cursor-pointer  q text-white self-center justify-self-end w-6 h-6  bg-gray-400 rounded-full flex justify-center items-center md:mr-6 mr-3"
+        className=" cursor-pointer  q text-white self-center justify-self-end w-6 h-6  bg-[#C5C5C5] rounded-full flex justify-center items-center md:mr-6 mr-3"
         onClick={() =>
           document.querySelector(".info")?.classList.remove("hidden")
         }
       >
         ?
       </div>
-      <div className="info hidden   backdrop-blur bg-lb  shadow-3xl text-white p-3 py-6  rounded-[10px] break-words md:max-w-[40vw] max-w-[80vw] md:right-5 right-2 md:top-6 top-5 absolute z-[99]">
+      <div
+        onClick={() => document.querySelector(".info")?.classList.add("hidden")}
+        className="info hidden   backdrop-blur bg-lb  shadow-3xl text-white p-3 py-6  rounded-[10px] break-words md:max-w-[40vw] max-w-[80vw] md:right-5 right-2 md:top-6 top-5 absolute z-[99]"
+      >
         <div
           className="flex  absolute top-2 w-4 h-4 justify-center items-center p-0 bg-red-600 rounded-full right-2 z-[999]]  "
           onClick={() =>
@@ -399,20 +394,18 @@ function App() {
         ></div>
         <ol className="px-6 text-[.9rem] flex flex-col gap-1">
           <li> 1. Scan the QR Code 🔍</li>
-
-          {/* [ Or just add the name to the end of the URL ]<br /> */}
           <li> 2. Click Recieve 📂</li>
           <li> 3. You're now connected ⚡</li>
-
-          {/* <li>  Choose a file. </li>
-        <li>  Hit Send button.</li> */}
         </ol>
         <p className=" px-6 mt-4 text-gray-100 text-xs">
           {" "}
           Can't scan QR Code? Just add the name at the end of the URL 😀{" "}
         </p>
       </div>
-      <svg onClick={()=>{ window.location.assign(baseURL)}}
+      <svg
+        onClick={() => {
+          window.location.assign(baseURL);
+        }}
         className="logo  flex justify-items-start  items-start  self-end md:ml-6 md:mt-6 ml-3 mt-3  md:scale-[.71] scale-[.7] origin-top-left  "
         width="59"
         height="57"
@@ -434,7 +427,7 @@ function App() {
             width="112.814"
             height="128"
             rx="4"
-            fill="#9CA38F"
+            fill="#C5C5C5"
           />
         )}
         <path
@@ -456,7 +449,7 @@ function App() {
             width="128"
             height="119.018"
             rx="4"
-            fill="#9CA38F"
+            fill="#C5C5C5"
           />
         )}
         {connection ? (
@@ -473,7 +466,7 @@ function App() {
             width="128"
             height="119.018"
             rx="4"
-            fill="#9CA38F"
+            fill="#C5C5C5"
           />
         )}
         <path
@@ -488,24 +481,35 @@ function App() {
 
       <span className=" md:ml-6 hidden md:flex text-white md_brand flex-col md:self-start justify-end w-[max-content] ">
         {" "}
-        <p className="text-2xl">iP2P </p>
+        <p className="text-2xl opacity-0">iP2P </p>
       </span>
       <div className="md:ml-6 ml-3 flex-wrap  md:items-center md:w-[80%] md:mr-6 h-full md:justify-center  md:self-center md:h-[max-content] justify-between   md:py-0  banner  w-full text-4xl flex flex-col md:flex- row gap-6 md:gap-12 text-gray-200">
         <span className="flex md_brand text-xl  md:hidden flex-col md:self-start justify-end w-[max-content] ">
           {" "}
-          <p>iP2P </p>
+          <p className="opacity-0">iP2P </p>
         </span>
         {roomId ? (
           <>
-            <div className="bg-lb p-4 self-center justify-self-end hidden md:flex md:rounded-[15px]  h-[min-content]">
-              <QRCode
-                size={100}
-                style={{}}
-                value={`${baseURL}/${roomId}`}
-                viewBox={`0 0 100 100`}
-              />
+            <div className=" items-center rounded-[35px]  p-1 gap-6 justify-center self-center justify-self-end hidden md:flex md:rounded  h-[min-content]">
+              <span className="p-1 bg-g rounded">
+                <QRCode
+                  size={100}
+                  style={{}}
+                  value={`${baseURL}/${roomId}`}
+                  viewBox={`0 0 100 100`}
+                />
+              </span>
+              <div className="md:justify-self-end justify-self-center  text-xl  md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
+                <img
+                  className="w-6 h-6 md:w-8 md:h-8 rounded-full "
+                  src={`data:image/svg+xml;utf8,${generateFromString(
+                    myname.current
+                  )}`}
+                />
+                {myname ? myname.current : ""}
+              </div>
             </div>
-            <div className="bg-transparent  ml-[-1.5rem] self-center justify-self-end md:hidden  h-[min-content]">
+            <div className="bg-g p-1 rounded  flex items-center justify-items-center ml-[-1.5rem] self-center justify-self-end md:hidden  h-[min-content]">
               <QRCode
                 size={80}
                 style={{}}
@@ -520,20 +524,19 @@ function App() {
         id="progress"
         className="bg-g w-0 absolute  progress h-1 top-0"
       ></span>
-      <div className="md:justify-self-end justify-self-center   md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
+      <div className="md:justify-self-end justify-self-center   md:bg-transparent md:hidden   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
         <img
           className="w-6 h-6 md:w-8 md:h-8 rounded-full "
           src={`data:image/svg+xml;utf8,${generateFromString(myname.current)}`}
         />
         {myname ? myname.current : ""}
-        {/* </span> */}
       </div>
-      {/* <img src="" className="recieved_img absolute z-" width="400" height="400" alt="pic" /> */}
+
       <div
         id="progress"
-        className="progress md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-6 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  "
+        className="progress md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-1 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  "
       >
-        <label className="custom-file-upload fileinput   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-lb  text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px]">
+        <label className="custom-file-upload fileinput flex   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.21)] bg-lb  text-white px-5 py-3 rounded-[25px] min-w-[150px]">
           Choose File
           <input
             type="file"
@@ -541,16 +544,12 @@ function App() {
             onChange={(e: any) => fileAdd(e)}
           />
         </label>
-        <span className="file_name text-xs text-gray-200 opacity-0">""</span>
-        {/* <button
-          id="sendButton"
-          className="btn shadow-[1px_1px_20px_-15px_rgba(20,220,220,.51)] bg-b text-gray-300 text-2xl  px-5 py-3 rounded-[25px] min-w-[150px] "
-          onClick={Sendmsg}
-        >
-          send msg
-        </button> */}
+        <span className="file_name text-[.5rem]  text-gray-200 opacity-0">
+          ""
+        </span>
+
         <button
-          className="btn send_btn shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px] "
+          className="btn send_btn shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g  text-white px-5 py-3 rounded-[25px] min-w-[150px] "
           onClick={Sendmsg}
         >
           Send
@@ -568,18 +567,9 @@ function App() {
         </div>
       </div>
 
-      <div
-        style={{
-          height: "auto",
-          margin: "0 auto",
-          maxWidth: 64,
-          width: "100%",
-        }}
-      ></div>
-
       {/* <span className="hidden md:flex  h-full"></span> */}
       <p className="foot md:absolute md:bottom-[2%] py-2 md:py-0  md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
-        Made with ❤️ by amithjayapraban
+        @amithjayapraban ⚡
       </p>
     </div>
   );
