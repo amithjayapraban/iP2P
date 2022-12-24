@@ -79,6 +79,27 @@ input[type="file"] {
   transition: all 0.4s ease-in-out;
   top: -100% !important;
 }
+.outer_controls{
+background:radial-gradient()
+
+
+}
+/* .progress::before{
+  content: "";
+  z-index: -1;
+  height: 99%;
+  width: 99%;
+  top: 0.5%;
+  
+  left: .5%;
+
+  border-radius: 35px;
+  position: absolute;
+
+  background: #1e2a44 !important;
+  transition: all .4s ease-in;
+ 
+} */
 
 @media (min-width: 768px) {
   .home {

@@ -29,6 +29,7 @@ function App() {
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
   const production = true;
+  var type = useRef("");
 
   const firebaseConfig = {
     apiKey: "AIzaSyBo0rfvxWk-ONJwxR-9s_p10F4tgHIlt2A",
@@ -44,35 +45,34 @@ function App() {
   const db = getFirestore(app);
   var configuration = {
     iceServers: [
-      
-      { urls: "stun:stun.stunprotocol.org" },
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
       { urls: "stun:stun2.l.google.com:19302" },
       { urls: "stun:stun3.l.google.com:19302" },
-      { urls: "stun:stun4.l.google.com:19302" }, {
-        urls: "stun:relay.metered.ca:80",
-      },
-      {
-        urls: "turn:relay.metered.ca:80",
-        username: "74870fb3c3ec1f61f125f81c",
-        credential: "8BpwyFdt3grieB05",
-      },
-      {
-        urls: "turn:relay.metered.ca:443",
-        username: "74870fb3c3ec1f61f125f81c",
-        credential: "8BpwyFdt3grieB05",
-      },
-      {
-        urls: "turn:relay.metered.ca:443?transport=tcp",
-        username: "74870fb3c3ec1f61f125f81c",
-        credential: "8BpwyFdt3grieB05",
-      },
+      { urls: "stun:stun4.l.google.com:19302" },
+      // {
+      //   urls: "stun:relay.metered.ca:80",
+      // },
+      // {
+      //   urls: "turn:relay.metered.ca:80",
+      //   username: "74870fb3c3ec1f61f125f81c",
+      //   credential: "8BpwyFdt3grieB05",
+      // },
+      // {
+      //   urls: "turn:relay.metered.ca:443",
+      //   username: "74870fb3c3ec1f61f125f81c",
+      //   credential: "8BpwyFdt3grieB05",
+      // },
+      // {
+      //   urls: "turn:relay.metered.ca:443?transport=tcp",
+      //   username: "74870fb3c3ec1f61f125f81c",
+      //   credential: "8BpwyFdt3grieB05",
+      // },
     ],
   };
   const baseURL = production
     ? `https://${window.location.hostname}`
-    : "http://192.168.29.21:3001";
+    : "http://192.168.18.27:3000";
   var peerConnection = useRef(new RTCPeerConnection(configuration));
   useEffect(() => {
     const username = generateUsername("-");
@@ -101,10 +101,13 @@ function App() {
   const dataChannel = peerConnection.current.createDataChannel("mydata");
   dataChannel.addEventListener("open", (event) => {});
   var file: any;
+
   const fileAdd = (e: any) => {
     e.preventDefault();
     file = e.target.files[0];
-    console.log(file.arrayBuffer(), "bbufer");
+    console.log(file, "file");
+    var prog: any = document.getElementById("progress");
+    prog.style.width = `0%`;
     document.querySelector(".file_name")?.classList.remove("opacity-0");
     let name: any = document.querySelector(".file_name");
     name.innerHTML = file.name;
@@ -112,17 +115,30 @@ function App() {
 
   const Sendmsg = (e: any) => {
     e.preventDefault();
+
     file.arrayBuffer().then((buffer: any) => {
       const chunkSize = 16 * 1024;
+      let total_len = buffer.byteLength;
+      var prog1: any = document.querySelector(".progress");
+      prog1.classList.remove("w-0");
+      var prog: any = document.getElementById("progress");
       while (buffer.byteLength) {
         const chunk = buffer.slice(0, chunkSize);
         buffer = buffer.slice(chunkSize, buffer.byteLength);
         dataChannel.send(chunk);
+
+        prog.style.opacity = "1";
+        let w = (buffer.byteLength / total_len) * 100 - 100;
+        prog.style.width = `${Math.abs(w * 2)}%`;
+        console.log(Math.abs(w));
       }
-      var type = { type: file.type };
-      dataChannel.send(type.toString());
+      dataChannel.send(`type:${file.type}`);
       dataChannel.send("completed");
-      file = undefined;
+      setTimeout(() => {
+        var prog: any = document.getElementById("progress");
+
+        prog.style.width = "0";
+      }, 3000);
       let name: any = document.querySelector(".toast");
       name.innerHTML = "Transfer Completed ⚡";
       document.querySelector(".toast")?.classList.toggle("completed_animation");
@@ -312,20 +328,29 @@ function App() {
     console.log(e, "data cahnel on client");
     var clientDc: any = e.channel;
 
-    console.log(clientDc, "clientdc");
     const fileChunks: any = [];
+
     clientDc.addEventListener("message", (e: any) => {
+      console.log(e.data, "dtaaa");
+      var prog1: any = document.querySelector(".progress");
+      prog1.classList.remove("w-0");
+      var prog: any = document.getElementById("progress");
+      if (e.data.toString()) {
+        if (e.data.toString() !== "completed") {
+          type.current = e.data.toString();
+
+          // console.log(type.current, "type");
+        }
+        // console.log(e.data.toString().slice(5,e.data.toString().length), "type of file");
+      }
       if (e.data.toString() === "completed") {
-        // Once, all the chunks are received, combine them to form a Blob
         const file = new Blob(fileChunks);
 
         console.log("Received", file);
-        // const img:any=document.querySelector(".recieved_img");
-        // img.src=URL.createObjectURL(file);
-        download(file, "downloaded.jpeg");
-        const myFile = new File([file], "image.jpeg", {
-          type: "image",
-        });
+
+        let t = type.current.split("/");
+        //  console.log(t,"type aftre");
+        download(file, `downloaded.${t[1]}`);
 
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
@@ -341,7 +366,6 @@ function App() {
         // window.open(URL.createObjectURL(file));
         // console.log(myFile, "filr");
       } else {
-        // Keep appending various file chunks
         fileChunks.push(e.data);
       }
 
@@ -492,7 +516,10 @@ function App() {
           </>
         ) : null}
       </div>
-
+      <span
+        id="progress"
+        className="bg-g w-0 absolute  progress h-1 top-0"
+      ></span>
       <div className="md:justify-self-end justify-self-center   md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
         <img
           className="w-6 h-6 md:w-8 md:h-8 rounded-full "
@@ -502,7 +529,10 @@ function App() {
         {/* </span> */}
       </div>
       {/* <img src="" className="recieved_img absolute z-" width="400" height="400" alt="pic" /> */}
-      <div className=" md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-6 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  ">
+      <div
+        id="progress"
+        className="progress md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-6 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  "
+      >
         <label className="custom-file-upload fileinput   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-lb  text-xl text-white px-5 py-3 rounded-[25px] min-w-[150px]">
           Choose File
           <input
