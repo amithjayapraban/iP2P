@@ -347,9 +347,10 @@ function App() {
     console.log(e, "data cahnel on client");
     var clientDc: any = e.channel;
 
-    const fileChunks: any = [];
-
+    var fileChunks: any = [];
+   var file;
     clientDc.addEventListener("message", (e: any) => {
+    
       console.log(e.data, "dtaaa");
       var prog1: any = document.querySelector(".progress");
       prog1.classList.remove("w-0");
@@ -360,7 +361,7 @@ function App() {
         }
       }
       if (e.data.toString() === "completed") {
-        const file = new Blob(fileChunks);
+         file = new Blob(fileChunks);
 
         console.log("Received", file);
 
@@ -381,9 +382,10 @@ function App() {
       } else {
         fileChunks.push(e.data);
       }
-
+      
       console.log(e.data, "msg from sendedr");
     });
+   
   };
 
   function close() {
