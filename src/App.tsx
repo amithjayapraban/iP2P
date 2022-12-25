@@ -70,6 +70,7 @@ function App() {
     ? `https://${window.location.hostname}`
     : "http://192.168.18.27:3000";
   var peerConnection = useRef(new RTCPeerConnection(configuration));
+
   useEffect(() => {
     const username = generateUsername("-");
     window.document.title = "iP2P - Not Connected";
@@ -97,7 +98,7 @@ function App() {
   const dataChannel = peerConnection.current.createDataChannel("mydata");
   dataChannel.addEventListener("open", (event) => {});
   var file: any;
-
+  const myWorker = new Worker("/worker.js");
   const fileAdd = (e: any) => {
     e.preventDefault();
     file = e.target.files[0];
@@ -115,39 +116,59 @@ function App() {
 
   const Sendmsg = (e: any) => {
     e.preventDefault();
-
-    file.arrayBuffer().then((buffer: any) => {
-      const chunkSize = 16 * 1024;
-      let total_len = buffer.byteLength;
-      var prog1: any = document.querySelector(".progress");
-      prog1.classList.remove("w-0");
-      var prog: any = document.getElementById("progress");
-      while (buffer.byteLength) {
-        const chunk = buffer.slice(0, chunkSize);
-        buffer = buffer.slice(chunkSize, buffer.byteLength);
-        dataChannel.send(chunk);
-
-        prog.style.opacity = "1";
-        let w = (buffer.byteLength / total_len) * 100 - 100;
-        prog.style.width = `${Math.abs(w * 2)}%`;
-        console.log(Math.abs(w));
+    if (window.Worker) {
+      myWorker.postMessage({ file });
+      console.log("Message posted to worker");
+    }
+    var prog1: any = document.querySelector(".progress");
+    prog1.classList.remove("w-0");
+    var prog: any = document.getElementById("progress");
+    prog.style.opacity = "1";
+    let dlen = 0;
+    myWorker.onmessage = (e) => {
+      console.log("Message received from worker chunk", e.data);
+      if(e.data.toString()==="completed"){
+        dataChannel.send(`type:${file.type}`);
+        dataChannel.send("completed");
       }
-      dataChannel.send(`type:${file.type}`);
-      dataChannel.send("completed");
-      setTimeout(() => {
-        var prog: any = document.getElementById("progress");
+      console.log(e.data.w, "width");
+      prog.style.width = `${Math.abs(e.data.w * 2)}%`;
 
-        prog.style.width = "0";
-      }, 3000);
-      let name: any = document.querySelector(".toast");
-      name.innerHTML = "Transfer Completed ⚡";
+      dataChannel.send(e.data.chunk);
+    };
+
+    // file.arrayBuffer().then((buffer: any) => {
+    // const chunkSize = 16 * 1024;
+    // let total_len = buffer.byteLength;
+    // var prog1: any = document.querySelector(".progress");
+    // prog1.classList.remove("w-0");
+    // var prog: any = document.getElementById("progress");
+    // while (buffer.byteLength) {
+    //   const chunk = buffer.slice(0, chunkSize);
+    //   buffer = buffer.slice(chunkSize, buffer.byteLength);
+    //   dataChannel.send(chunk);
+
+    //   prog.style.opacity = "1";
+    //   let w = (buffer.byteLength / total_len) * 100 - 100;
+    //   prog.style.width = `${Math.abs(w * 2)}%`;
+    //   console.log(Math.abs(w));
+    // }
+
+    // dataChannel.send(`type:${file.type}`);
+
+    // dataChannel.send("completed");
+    setTimeout(() => {
+      var prog: any = document.getElementById("progress");
+
+      prog.style.width = "0";
+    }, 3000);
+    let name: any = document.querySelector(".toast");
+    name.innerHTML = "Transfer Completed ⚡";
+    document.querySelector(".toast")?.classList.toggle("completed_animation");
+    setTimeout(() => {
       document.querySelector(".toast")?.classList.toggle("completed_animation");
-      setTimeout(() => {
-        document
-          .querySelector(".toast")
-          ?.classList.toggle("completed_animation");
-      }, 3000);
-    });
+    }, 3000);
+    // });
   };
 
   async function createRoom() {
