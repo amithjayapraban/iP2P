@@ -29,13 +29,13 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-A P2P file sharing web app. Uses firebase for signalling. 
+A P2P file sharing web app. <br/> Uses firebase for signalling. 
 
 ### Screenshots
 
 
-<div align="center">
-<img src="public/screenshot.png"  width="200" />
+<div align="left">
+<img src="public/screenshot.png"  width="150" />
 </div>
 
 
