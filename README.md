@@ -23,49 +23,28 @@
 
 
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
- 
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
+
 
 
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
+A P2P file sharing web app. Uses firebase for signalling. 
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+### Screenshots
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
 
+<div align="center">
+<img src="public/screenshot.png"  width="200" />
+</div>
 
 
 
 
 ### Built With
-
-
-* [![React][React.js]][React-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
+* React
+* Tailwind
+* Firebase
 
 
 
@@ -89,7 +68,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/amithjayapraban/p2p.git
    ```
 1. Install NPM packages
    ```sh
@@ -122,25 +101,25 @@ Don't forget to give the project a star! Thanks again!
 
 
 
-<!-- LICENSE -->
+<!-- LICENSE 
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. 
+-->
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 <!-- CONTACT -->
 ## Contact
 
-Amith - [@amithjayapraban](https://twitter.com/amithjayapraban)  
+Amith Jayapraban - [@amithjayapraban](https://twitter.com/amithjayapraban)  
 
 
 
 
 <!-- ACKNOWLEDGMENTS -->
-## 
+## Acknowledgments
 
 
 
