@@ -127,7 +127,7 @@ function App() {
     let dlen = 0;
     myWorker.onmessage = (e) => {
       console.log("Message received from worker chunk", e.data);
-      if(e.data.toString()==="completed"){
+      if (e.data.toString() === "completed") {
         dataChannel.send(`type:${file.type}`);
         dataChannel.send("completed");
       }
@@ -342,15 +342,15 @@ function App() {
       }
     });
   };
-
+  var blobUrl: any;
   peerConnection_client.current.ondatachannel = (e: any) => {
     console.log(e, "data cahnel on client");
     var clientDc: any = e.channel;
 
     var fileChunks: any = [];
-   var file;
+    var file;
+
     clientDc.addEventListener("message", (e: any) => {
-    
       console.log(e.data, "dtaaa");
       var prog1: any = document.querySelector(".progress");
       prog1.classList.remove("w-0");
@@ -361,13 +361,40 @@ function App() {
         }
       }
       if (e.data.toString() === "completed") {
-         file = new Blob(fileChunks);
+        file = new Blob(fileChunks);
 
         console.log("Received", file);
 
         let t = type.current.split("/");
+        blobUrl = URL.createObjectURL(file);
 
-        download(file, `downloaded.${t[1]}`);
+        // Create a link element
+        const link = document.createElement("a");
+
+        // Set link's href to point to the Blob URL
+        link.href = blobUrl;
+
+        link.download = `downloaded.${t[1]}`;
+
+        // download(file, `downloaded.${t[1]}`);
+        document.body.appendChild(link);
+
+        var a = link.dispatchEvent(
+          new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          })
+        );
+
+        // Remove link from body
+
+        document.body.removeChild(link);
+
+        // setTimeout(()=>{
+
+        //   URL.revokeObjectURL(blobUrl);
+        // },4000)
 
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
@@ -382,10 +409,9 @@ function App() {
       } else {
         fileChunks.push(e.data);
       }
-      
+
       console.log(e.data, "msg from sendedr");
     });
-   
   };
 
   function close() {
