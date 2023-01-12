@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
-import download from "downloadjs";
 import { generateUsername } from "unique-username-generator";
 import { initializeApp } from "firebase/app";
 import { generateFromString } from "generate-avatar";
@@ -46,24 +45,6 @@ function App() {
       { urls: "stun:stun2.l.google.com:19302" },
       { urls: "stun:stun3.l.google.com:19302" },
       { urls: "stun:stun4.l.google.com:19302" },
-      // {
-      //   urls: "stun:relay.metered.ca:80",
-      // },
-      // {
-      //   urls: "turn:relay.metered.ca:80",
-      //   username: "74870fb3c3ec1f61f125f81c",
-      //   credential: "8BpwyFdt3grieB05",
-      // },
-      // {
-      //   urls: "turn:relay.metered.ca:443",
-      //   username: "74870fb3c3ec1f61f125f81c",
-      //   credential: "8BpwyFdt3grieB05",
-      // },
-      // {
-      //   urls: "turn:relay.metered.ca:443?transport=tcp",
-      //   username: "74870fb3c3ec1f61f125f81c",
-      //   credential: "8BpwyFdt3grieB05",
-      // },
     ],
   };
   const baseURL = production
@@ -128,10 +109,10 @@ function App() {
     myWorker.onmessage = (e) => {
       console.log("Message received from worker chunk", e.data);
       if (e.data.toString() === "completed") {
-        dataChannel.send(`type:${file.type}`);
+        dataChannel.send(`type:${file.name}`);
         dataChannel.send("completed");
       }
-      console.log(e.data.w, "width");
+      // console.log(e.data.w, "width");
       prog.style.width = `${Math.abs(e.data.w * 2)}%`;
 
       dataChannel.send(e.data.chunk);
@@ -351,7 +332,6 @@ function App() {
     var file;
 
     clientDc.addEventListener("message", (e: any) => {
-      console.log(e.data, "dtaaa");
       var prog1: any = document.querySelector(".progress");
       prog1.classList.remove("w-0");
       var prog: any = document.getElementById("progress");
@@ -362,23 +342,12 @@ function App() {
       }
       if (e.data.toString() === "completed") {
         file = new Blob(fileChunks);
-
-        console.log("Received", file);
-
-        let t = type.current.split("/");
+        let t = type.current;
         blobUrl = URL.createObjectURL(file);
-
-        // Create a link element
-        const link = document.createElement("a");
-
-        // Set link's href to point to the Blob URL
+        var link = document.createElement("a");
         link.href = blobUrl;
-
-        link.download = `downloaded.${t[1]}`;
-
-        // download(file, `downloaded.${t[1]}`);
+        link.download = t.substring(5);
         document.body.appendChild(link);
-
         var a = link.dispatchEvent(
           new MouseEvent("click", {
             bubbles: true,
@@ -387,14 +356,8 @@ function App() {
           })
         );
 
-        // Remove link from body
-
         document.body.removeChild(link);
-
-        // setTimeout(()=>{
-
-        //   URL.revokeObjectURL(blobUrl);
-        // },4000)
+        URL.revokeObjectURL(blobUrl);
 
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
@@ -405,12 +368,13 @@ function App() {
           document
             .querySelector(".toast")
             ?.classList.toggle("completed_animation");
+          fileChunks = [""];
         }, 10000);
       } else {
         fileChunks.push(e.data);
       }
 
-      console.log(e.data, "msg from sendedr");
+      // console.log(e.data, "msg from sendedr");
     });
   };
 
