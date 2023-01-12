@@ -27,8 +27,8 @@ function App() {
   var type = useRef("");
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBo0rfvxWk-ONJwxR-9s_p10F4tgHIlt2A",
-    authDomain: "p2pfile-a6d84.firebaseapp.com",
+    apiKey: import.meta.env.REACT_APP_API_KEY,
+    authDomain: import.meta.env.REACT_APP_AUTH_DOMAIN,
     databaseURL:
       "https://p2pfile-a6d84-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "p2pfile-a6d84",
