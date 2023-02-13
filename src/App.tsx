@@ -117,10 +117,8 @@ function App() {
         dataChannel.send(`type:${file_name}`);
         dataChannel.send("completed");
         setTimeout(() => {
-          var prog: any = document.getElementById("progress");
-
-          prog.style.width = "0";
-        }, 3000);
+      document.querySelector(".toast")?.classList.toggle("completed_animation");
+    }, 3000);
       }
       // console.log(e.data.w, "width");
       prog.style.width = `${Math.abs(e.data.w * 2)}%`;
@@ -148,13 +146,15 @@ function App() {
     // dataChannel.send(`type:${file.type}`);
 
     // dataChannel.send("completed");
-    
+    setTimeout(() => {
+      var prog: any = document.getElementById("progress");
+
+      prog.style.width = "0";
+    }, 3000);
     let name: any = document.querySelector(".toast");
     name.innerHTML = "Transfer Completed ⚡";
-    document.querySelector(".toast")?.classList.toggle("completed_animation");
-    setTimeout(() => {
-      document.querySelector(".toast")?.classList.toggle("completed_animation");
-    }, 3000);
+
+    
     // });
   };
 
