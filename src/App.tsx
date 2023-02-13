@@ -148,11 +148,7 @@ function App() {
     // dataChannel.send(`type:${file.type}`);
 
     // dataChannel.send("completed");
-    setTimeout(() => {
-      var prog: any = document.getElementById("progress");
-
-      prog.style.width = "0";
-    }, 3000);
+    
     let name: any = document.querySelector(".toast");
     name.innerHTML = "Transfer Completed ⚡";
     document.querySelector(".toast")?.classList.toggle("completed_animation");
