@@ -116,9 +116,10 @@ function App() {
         file_name = file[i].name;
         dataChannel.send(`type:${file_name}`);
         dataChannel.send("completed");
+        document.querySelector(".toast")?.classList.toggle("completed_animation");
         setTimeout(() => {
-      document.querySelector(".toast")?.classList.toggle("completed_animation");
-    }, 3000);
+          document.querySelector(".toast")?.classList.toggle("completed_animation");
+        }, 3000);
       }
       // console.log(e.data.w, "width");
       prog.style.width = `${Math.abs(e.data.w * 2)}%`;
@@ -153,8 +154,7 @@ function App() {
     }, 3000);
     let name: any = document.querySelector(".toast");
     name.innerHTML = "Transfer Completed ⚡";
-
-    
+   
     // });
   };
 
