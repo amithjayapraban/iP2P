@@ -82,7 +82,7 @@ function App() {
   const myWorker = new Worker("/worker.js");
   const fileAdd = (e: any) => {
     e.preventDefault();
-    file = e.target.files;
+    file = e.target.files[0];
     console.log(file, "file");
     var prog: any = document.getElementById("progress");
     prog.style.width = `0%`;
