@@ -82,7 +82,7 @@ function App() {
   const myWorker = new Worker("/worker.js");
   const fileAdd = (e: any) => {
     e.preventDefault();
-    file = e.target.files[0];
+    file = e.target.files;
     console.log(file, "file");
     var prog: any = document.getElementById("progress");
     prog.style.width = `0%`;
@@ -97,8 +97,11 @@ function App() {
 
   const Sendmsg = (e: any) => {
     e.preventDefault();
+    let file_name: any;
     if (window.Worker) {
-      myWorker.postMessage({ file });
+      let fl = file;
+      
+      myWorker.postMessage({ fl });
       console.log("Message posted to worker");
     }
     var prog1: any = document.querySelector(".progress");
@@ -108,9 +111,23 @@ function App() {
     let dlen = 0;
     myWorker.onmessage = (e) => {
       console.log("Message received from worker chunk", e.data);
+      let i=0;;
       if (e.data.toString() === "completed") {
-        dataChannel.send(`type:${file.name}`);
+        file_name = file[i].name;
+        dataChannel.send(`type:${file_name}`);
         dataChannel.send("completed");
+        i++;
+        setTimeout(() => {
+          var prog: any = document.getElementById("progress");
+    
+          prog.style.width = "0";
+        }, 3000);
+        let name: any = document.querySelector(".toast");
+        name.innerHTML = "Transfer Completed ⚡";
+        document.querySelector(".toast")?.classList.toggle("completed_animation");
+        setTimeout(() => {
+          document.querySelector(".toast")?.classList.toggle("completed_animation");
+        }, 3000);
       }
       // console.log(e.data.w, "width");
       prog.style.width = `${Math.abs(e.data.w * 2)}%`;
@@ -138,17 +155,7 @@ function App() {
     // dataChannel.send(`type:${file.type}`);
 
     // dataChannel.send("completed");
-    setTimeout(() => {
-      var prog: any = document.getElementById("progress");
-
-      prog.style.width = "0";
-    }, 3000);
-    let name: any = document.querySelector(".toast");
-    name.innerHTML = "Transfer Completed ⚡";
-    document.querySelector(".toast")?.classList.toggle("completed_animation");
-    setTimeout(() => {
-      document.querySelector(".toast")?.classList.toggle("completed_animation");
-    }, 3000);
+    
     // });
   };
 
@@ -344,7 +351,7 @@ function App() {
         file = new Blob(fileChunks);
         let t = type.current;
         blobUrl = URL.createObjectURL(file);
-        var link = document.createElement("a");
+        var link:any = document.createElement("a");
         link.href = blobUrl;
         link.download = t.substring(5);
         document.body.appendChild(link);
@@ -358,7 +365,8 @@ function App() {
 
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
-
+      file=null;
+      link=undefined;
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
         document
@@ -368,7 +376,6 @@ function App() {
           document
             .querySelector(".toast")
             ?.classList.toggle("completed_animation");
-          fileChunks = [""];
         }, 10000);
       } else {
         fileChunks.push(e.data);
@@ -553,6 +560,7 @@ function App() {
           Choose File
           <input
             type="file"
+            multiple
             className="send"
             onChange={(e: any) => fileAdd(e)}
           />

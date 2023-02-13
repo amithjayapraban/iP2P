@@ -1,7 +1,7 @@
 onmessage = (e) => {
-  var file = e.data.file;
-
-  file.arrayBuffer().then((buffer) => {
+ var file = e.data.fl;
+for(let f=0;f<file.length;f++){
+  file[f].arrayBuffer().then((buffer) => {
     const chunkSize = 16 * 1024;
     let total_len = buffer.byteLength;
     while (buffer.byteLength) {
@@ -14,6 +14,8 @@ onmessage = (e) => {
     }
     postMessage("completed");
   });
+
+}
 };
 
 // file.arrayBuffer().then((buffer: any) => {
