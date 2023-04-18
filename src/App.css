@@ -14,15 +14,6 @@ body {
   box-sizing: border-box;
 }
 
-/* @media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
-} */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,13 +44,13 @@ input[type="file"] {
     "banner banner"
     "myname myname"
     "controls controls"
-    'foot foot';
+    "foot foot";
   background: radial-gradient(circle, #1e2a44 5%, #162137 70%);
 }
 .logo {
   grid-area: logo;
 }
-.q{
+.q {
   grid-area: q;
 }
 .banner {
@@ -72,38 +63,20 @@ input[type="file"] {
 .controls {
   grid-area: controls;
 }
-.foot{
+.foot {
   grid-area: foot;
 }
 .completed_animation {
   transition: all 0.4s ease-in-out;
   top: -100% !important;
 }
-.outer_controls{
-background:radial-gradient()
-
-
+.outer_controls {
+  background: radial-gradient();
 }
-/* .progress::before{
-  content: "";
-  z-index: -1;
-  height: 99%;
-  width: 99%;
-  top: 0.5%;
-  
-  left: .5%;
-
-  border-radius: 35px;
-  position: absolute;
-
-  background: #1e2a44 !important;
-  transition: all .4s ease-in;
- 
-} */
 
 @media (min-width: 768px) {
   .home {
-    grid-template-rows: 0.2fr .2fr 3fr 1fr;
+    grid-template-rows: 0.2fr 0.2fr 3fr 1fr;
 
     grid-template-columns: 3fr 3fr;
     grid-template-areas:
@@ -114,11 +87,11 @@ background:radial-gradient()
   .myname {
     grid-area: banner;
   }
-  .md_brand{
+  .md_brand {
     grid-area: myname;
     grid-column-start: 1;
   }
-  .q{
+  .q {
     grid-area: q;
   }
   .completed_animation {

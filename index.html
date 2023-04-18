@@ -5,7 +5,6 @@
     <link rel="icon" type="image/png" href="/S.png" />
     <meta name="theme-color" content="#16137" />
     <link rel="icon" type="image/png" href="/S.png" />
-
     <link rel="shortcut icon" href="/S.png" />
     <link rel="apple-touch-icon" href="/S.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,9 +12,8 @@
   </head>
   <script type="module">
     import { registerSW } from "virtual:pwa-register";
-   
+
     if ("serviceWorker" in navigator) {
-      // && !/localhost/.test(window.location)) {
       registerSW();
     }
   </script>

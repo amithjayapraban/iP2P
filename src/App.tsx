@@ -18,26 +18,14 @@ import {
 } from "firebase/firestore";
 function App() {
   var myname = useRef("");
-  const [peerUsername, setPeerUsername] = useState("");
-  const usersList = useRef([""]);
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
   const production = true;
   var type = useRef("");
-
-  const firebaseConfig = {
-    apiKey: import.meta.env.REACT_APP_API_KEY,
-    authDomain: import.meta.env.REACT_APP_AUTH_DOMAIN,
-    databaseURL:
-      "https://p2pfile-a6d84-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "p2pfile-a6d84",
-    storageBucket: "p2pfile-a6d84.appspot.com",
-    messagingSenderId: "886889178798",
-    appId: "1:886889178798:web:5f5a1727a4584040712f3f",
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const baseURL = production
+    ? `https://${window.location.hostname}`
+    : "http://192.168.18.27:3000";
   var configuration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -47,14 +35,29 @@ function App() {
       { urls: "stun:stun4.l.google.com:19302" },
     ],
   };
-  const baseURL = production
-    ? `https://${window.location.hostname}`
-    : "http://192.168.18.27:3000";
   var peerConnection = useRef(new RTCPeerConnection(configuration));
 
+  //firebase configuration
+  //for signalling
+  const firebaseConfig = {
+    apiKey: import.meta.env.REACT_APP_API_KEY,
+    authDomain: import.meta.env.REACT_APP_AUTH_DOMAIN,
+    databaseURL: import.meta.env.REACT_APP_DB_URL,
+    projectId: "p2pfile-a6d84",
+    storageBucket: "p2pfile-a6d84.appspot.com",
+    messagingSenderId: "886889178798",
+    appId: "1:886889178798:web:5f5a1727a4584040712f3f",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
   useEffect(() => {
+    //Generates a unique username thats used as room name
     const username = generateUsername("-");
     window.document.title = "iP2P - Not Connected";
+
+    //If it's the reciever there would be room id in the url
     if (window.location.pathname !== "/") {
       let p = window.location.pathname.slice(1);
       myname.current = p;
@@ -67,8 +70,9 @@ function App() {
       document.querySelector(".fileinput")?.classList.add("hidden");
 
       document.querySelector(".recieve_btn")?.classList.toggle("hidden");
-      // Recieve();
     }
+
+    // If the user is sender, room id is generated and assigned
     if (window.location.pathname == "/") {
       username ? (myname.current = username) : null;
       document.querySelector(".fileinput")?.classList.remove("hidden");
@@ -76,21 +80,24 @@ function App() {
     }
   }, []);
 
+  //creates a data channel thats used for the connection
   const dataChannel = peerConnection.current.createDataChannel("mydata");
+
   dataChannel.addEventListener("open", (event) => {});
   var file: any;
+  //Web worker
   const myWorker = new Worker("/worker.js");
   const fileAdd = (e: any) => {
     e.preventDefault();
     file = e.target.files[0];
-    console.log(file, "file");
+
     var prog: any = document.getElementById("progress");
     prog.style.width = `0%`;
-    // document.querySelector(".file_name")?.classList.remove("opacity-0");
+
     let name: any = document.querySelectorAll(".file_name");
     name.forEach((element: any) => {
       element.classList.remove("opacity-0");
-      console.log(element);
+
       element.innerHTML = file.name;
     });
   };
@@ -99,7 +106,6 @@ function App() {
     e.preventDefault();
     if (window.Worker) {
       myWorker.postMessage({ file });
-      console.log("Message posted to worker");
     }
     var prog1: any = document.querySelector(".progress");
     prog1.classList.remove("w-0");
@@ -107,41 +113,24 @@ function App() {
     prog.style.opacity = "1";
     let dlen = 0;
     myWorker.onmessage = (e) => {
-      console.log("Message received from worker chunk", e.data);
       if (e.data.toString() === "completed") {
         dataChannel.send(`type:${file.name}`);
         dataChannel.send("completed");
-        document.querySelector(".toast")?.classList.toggle("completed_animation");
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
         setTimeout(() => {
-          document.querySelector(".toast")?.classList.toggle("completed_animation");
+          document
+            .querySelector(".toast")
+            ?.classList.toggle("completed_animation");
         }, 3000);
       }
-      // console.log(e.data.w, "width");
+
       prog.style.width = `${Math.abs(e.data.w * 2)}%`;
 
       dataChannel.send(e.data.chunk);
     };
-
-    // file.arrayBuffer().then((buffer: any) => {
-    // const chunkSize = 16 * 1024;
-    // let total_len = buffer.byteLength;
-    // var prog1: any = document.querySelector(".progress");
-    // prog1.classList.remove("w-0");
-    // var prog: any = document.getElementById("progress");
-    // while (buffer.byteLength) {
-    //   const chunk = buffer.slice(0, chunkSize);
-    //   buffer = buffer.slice(chunkSize, buffer.byteLength);
-    //   dataChannel.send(chunk);
-
-    //   prog.style.opacity = "1";
-    //   let w = (buffer.byteLength / total_len) * 100 - 100;
-    //   prog.style.width = `${Math.abs(w * 2)}%`;
-    //   console.log(Math.abs(w));
-    // }
-
-    // dataChannel.send(`type:${file.type}`);
-
-    // dataChannel.send("completed");
+    // File transfer animation
     setTimeout(() => {
       var prog: any = document.getElementById("progress");
 
@@ -149,15 +138,12 @@ function App() {
     }, 3000);
     let name: any = document.querySelector(".toast");
     name.innerHTML = "Transfer Completed ⚡";
-   
-    // });
   };
 
   async function createRoom() {
     const offer = await peerConnection.current.createOffer();
     await peerConnection.current.setLocalDescription(offer);
 
-    console.log(peerConnection.current.localDescription);
     try {
       const docRef = await addDoc(collection(db, "room"), {
         type: "offer",
@@ -190,29 +176,27 @@ function App() {
   });
 
   peerConnection.current.onicecandidate = async (e) => {
-    console.log(e, "evnt on ice");
     const roomRef = collection(db, "room");
     const q = query(roomRef, limit(1), where("name", "==", myname.current));
     const queryGet: any = await getDocs(q);
     queryGet.forEach(async (doc: any) => {
       var c = doc.ref._path.segments[1];
-      console.log(c);
+
       const ref = docup(db, "room", c);
       if (e.candidate) {
         const docRef = await updateDoc(ref, {
           candidate: JSON.stringify(e.candidate),
           name: myname.current,
         });
-        console.log("Document update: ", docRef);
       }
     });
   };
+
   peerConnection.current.addEventListener("connectionstatechange", (event) => {
-    console.log(event, "sender connection events");
     if (peerConnection.current.connectionState === "connected") {
       setConnection(true);
       window.document.title = "iP2P - Connected!";
-      console.log("peers cncted");
+
       let name: any = document.querySelector(".toast");
       name.innerHTML = "Connected ⚡";
       document.querySelector(".toast")?.classList.toggle("completed_animation");
@@ -223,6 +207,7 @@ function App() {
       }, 1000);
     }
   });
+
   const peerConnection_client = useRef(new RTCPeerConnection(configuration));
 
   peerConnection_client.current.addEventListener(
@@ -231,7 +216,7 @@ function App() {
       if (peerConnection_client.current.connectionState === "connected") {
         setConnection(true);
         window.document.title = "iP2P - Connected!";
-        console.log("peers cncted");
+
         let name: any = document.querySelector(".toast");
         name.innerHTML = "Connected ⚡";
         document
@@ -260,12 +245,10 @@ function App() {
         );
         const answer = await peerConnection_client.current.createAnswer();
         await peerConnection_client.current.setLocalDescription(answer);
-        console.log(answer, "ans");
+
         peerConnection_client.current.addEventListener(
           "icecandidate",
-          (e: any) => {
-            console.log("e reciebver", e);
-          }
+          (e: any) => {}
         );
         try {
           const docRef = await addDoc(collection(db, "room"), {
@@ -273,10 +256,7 @@ function App() {
             offer: JSON.stringify(answer),
             name: `${p}_`,
           });
-          console.log("Document written with ID: ", docRef.id);
-        } catch (e) {
-          console.error("Error adding document: ", e);
-        }
+        } catch (e) {}
       }
     });
 
@@ -289,15 +269,13 @@ function App() {
     onSnapshot(quer, (querySnapshot) => {
       querySnapshot.forEach((doc) => {
         let candidate = doc.data().candidate;
-        console.log(JSON.parse(candidate), "candid on recievr");
+
         peerConnection_client.current.addIceCandidate(JSON.parse(candidate));
       });
     });
 
     const fetch: any = await getDocs(quer);
     fetch.forEach(async (doc: any) => {
-      console.log("erererefcwedfe");
-      console.log(doc.data());
       let candidate = doc.data().candidate;
       peerConnection_client.current.addIceCandidate(JSON.parse(candidate));
     });
@@ -305,14 +283,12 @@ function App() {
 
   peerConnection_client.current.onicecandidate = async (e) => {
     let p = window.location.pathname.slice(1);
-    console.log(e, "ice event on reciever");
+
     const roomRef = collection(db, "room");
     const q = query(roomRef, limit(1), where("name", "==", `${p}_`));
     const queryG: any = await getDocs(q);
     queryG.forEach(async (doc: any) => {
-      //  console.log(doc.ref._path.segments[6],"nnn");
       var c = doc.ref._path.segments[1];
-      console.log(doc.ref._path.segments[1], "nnnn");
 
       if (e.candidate) {
         const ref = docup(db, "room", c);
@@ -320,13 +296,11 @@ function App() {
           candidate: JSON.stringify(e.candidate),
           name: `${p}_`,
         });
-        console.log("Document update: ", docRef);
       }
     });
   };
   var blobUrl: any;
   peerConnection_client.current.ondatachannel = (e: any) => {
-    console.log(e, "data cahnel on client");
     var clientDc: any = e.channel;
 
     var fileChunks: any = [];
@@ -374,14 +348,9 @@ function App() {
       } else {
         fileChunks.push(e.data);
       }
-
-      // console.log(e.data, "msg from sendedr");
     });
   };
 
-  function close() {
-    var name: any = { name_rem: myname };
-  }
   return (
     <div className="home relative bg-b h-screen overflow-hidden  ">
       <div className="text-white toast completed_animation absolute top-3 md:top-[90%]  right-[25%] left-[25%] md:right-10  md:left-[unset] flex items-center justify-center  rounded-[25px] md:rounded-[5px] p-2 py-3 z-[66] text-xs bg-g ">
@@ -581,10 +550,13 @@ function App() {
         </div>
       </div>
 
-      {/* <span className="hidden md:flex  h-full"></span> */}
-      <p className="foot md:absolute md:bottom-[2%] py-2 md:py-0  md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400">
+      <a
+        href="https://amith.vercel.app"
+        target="_blank"
+        className="foot md:absolute md:bottom-[2%] py-2 md:py-0  md:bg-transparent bg-lb w-[100%]  text-center justify-self-end self-center  md:text-xs text-[8px]  text-gray-400"
+      >
         @amithjayapraban ⚡
-      </p>
+      </a>
     </div>
   );
 }
