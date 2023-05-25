@@ -21,11 +21,11 @@ function App() {
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
-  const production = true;
+  const production = false;
   var type = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
-    : "http://192.168.18.27:3000";
+    : "http://192.168.18.27:3003";
   var configuration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
