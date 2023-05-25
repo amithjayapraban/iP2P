@@ -363,7 +363,7 @@ function App() {
 
       // }
 
-      if (e.data.toString() === "completed" && e.data.toString()) {
+      if (e.data.toString() === "completed") {
         file = new Blob(fileChunks);
         let t = type.current;
         blobUrl = URL.createObjectURL(file);
