@@ -21,7 +21,7 @@ function App() {
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
-  const production = false;
+  const production = true;
   var type = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
@@ -56,7 +56,9 @@ function App() {
     //Generates a unique username thats used as room name
     const username = generateUsername("-");
     window.document.title = "iP2P - Not Connected";
-
+    document
+      .querySelectorAll(".send_btn")[0]
+      .setAttribute("disabled", "disabled");
     //If it's the reciever there would be room id in the url
     if (window.location.pathname !== "/") {
       let p = window.location.pathname.slice(1);
@@ -105,15 +107,29 @@ function App() {
   const Sendmsg = (e: any) => {
     e.preventDefault();
     if (window.Worker) {
-      myWorker.postMessage({ file });
+      myWorker.postMessage(file);
     }
     var prog1: any = document.querySelector(".progress");
     prog1.classList.remove("w-0");
     var prog: any = document.getElementById("progress");
     prog.style.opacity = "1";
+    document
+      .querySelectorAll("#send_cntrl")
+      ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
+    document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
     let dlen = 0;
     myWorker.onmessage = (e) => {
+      console.log(e.data.w);
       if (e.data.toString() === "completed") {
+        document
+          .querySelectorAll("#send_cntrl")
+          ?.forEach((e: any) => e.removeAttribute("disabled"));
+        document.querySelectorAll(".send_btn")[0].innerHTML = "Send";
+        setTimeout(() => {
+          var prog: any = document.getElementById("progress");
+
+          prog.style.width = "0";
+        }, 3000);
         dataChannel.send(`type:${file.name}`);
         dataChannel.send("completed");
         document
@@ -126,16 +142,12 @@ function App() {
         }, 3000);
       }
 
-      prog.style.width = `${Math.abs(e.data.w * 2)}%`;
+      prog.style.width = `${Math.abs(e.data.w)}%`;
 
       dataChannel.send(e.data.chunk);
     };
     // File transfer animation
-    setTimeout(() => {
-      var prog: any = document.getElementById("progress");
 
-      prog.style.width = "0";
-    }, 3000);
     let name: any = document.querySelector(".toast");
     name.innerHTML = "Transfer Completed ⚡";
   };
@@ -196,7 +208,7 @@ function App() {
     if (peerConnection.current.connectionState === "connected") {
       setConnection(true);
       window.document.title = "iP2P - Connected!";
-
+      document.querySelectorAll(".send_btn")[0].removeAttribute("disabled");
       let name: any = document.querySelector(".toast");
       name.innerHTML = "Connected ⚡";
       document.querySelector(".toast")?.classList.toggle("completed_animation");
@@ -300,6 +312,7 @@ function App() {
     });
   };
   var blobUrl: any;
+
   peerConnection_client.current.ondatachannel = (e: any) => {
     var clientDc: any = e.channel;
 
@@ -310,12 +323,47 @@ function App() {
       var prog1: any = document.querySelector(".progress");
       prog1.classList.remove("w-0");
       var prog: any = document.getElementById("progress");
+
+      // const clientWorker = new Worker("/receiver_worker.js");
+
       if (e.data.toString()) {
         if (e.data.toString() !== "completed") {
           type.current = e.data.toString();
         }
       }
-      if (e.data.toString() === "completed") {
+      // clientWorker.onmessage = (e:any) => {
+      //   console.log(e,'file on client');
+      // file = new Blob(e);
+      // let t = type.current;
+      // blobUrl = URL.createObjectURL(file);
+      // var link = document.createElement("a");
+      // link.href = blobUrl;
+      // link.download = t.substring(5);
+      // document.body.appendChild(link);
+      // var a = link.dispatchEvent(
+      //   new MouseEvent("click", {
+      //     bubbles: true,
+      //     cancelable: true,
+      //     view: window,
+      //   })
+      // );
+
+      // document.body.removeChild(link);
+      // URL.revokeObjectURL(blobUrl);
+
+      // let name: any = document.querySelector(".toast");
+      // name.innerHTML = "File recieved ⚡";
+      // document.querySelector(".toast")?.classList.toggle("completed_animation");
+      // setTimeout(() => {
+      //   document
+      //     .querySelector(".toast")
+      //     ?.classList.toggle("completed_animation");
+      //   fileChunks = [""];
+      // }, 10000);
+
+      // }
+
+      if (e.data.toString() === "completed" && e.data.toString()) {
         file = new Blob(fileChunks);
         let t = type.current;
         blobUrl = URL.createObjectURL(file);
@@ -330,10 +378,8 @@ function App() {
             view: window,
           })
         );
-
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
-
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
         document
@@ -346,6 +392,7 @@ function App() {
           fileChunks = [""];
         }, 10000);
       } else {
+        console.count();
         fileChunks.push(e.data);
       }
     });
@@ -522,6 +569,7 @@ function App() {
         <label className="custom-file-upload fileinput flex   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.21)] bg-lb  text-white px-5 py-3 rounded-[25px] min-w-[150px]">
           Choose File
           <input
+            id="send_cntrl"
             type="file"
             className="send"
             onChange={(e: any) => fileAdd(e)}
@@ -532,7 +580,8 @@ function App() {
         </span>
 
         <button
-          className="btn send_btn shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g  text-white px-5 py-3 rounded-[25px] min-w-[150px] "
+          id="send_cntrl"
+          className="btn send_btn cursor-pointer shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g  text-white px-5 py-3 rounded-[25px] min-w-[150px] "
           onClick={Sendmsg}
         >
           Send
