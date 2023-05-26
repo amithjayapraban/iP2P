@@ -21,7 +21,7 @@ function App() {
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
-  const production = false;
+  const production = true;
   var type = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
