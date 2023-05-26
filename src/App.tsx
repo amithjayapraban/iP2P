@@ -21,7 +21,7 @@ function App() {
   const [roomId, setRoomId] = useState("");
   const [docId, setDocId] = useState("");
   const [connection, setConnection] = useState(false);
-  const production = true;
+  const production = false;
   var type = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
@@ -84,15 +84,14 @@ function App() {
 
   //creates a data channel thats used for the connection
   const dataChannel = peerConnection.current.createDataChannel("mydata");
-
+  dataChannel.bufferedAmountLowThreshold = 1024;
   dataChannel.addEventListener("open", (event) => {});
   var file: any;
   //Web worker
   const myWorker = new Worker("/worker.js");
   const fileAdd = (e: any) => {
     e.preventDefault();
-    file = e.target.files[0];
-
+    file = e.target.files;
     var prog: any = document.getElementById("progress");
     prog.style.width = `0%`;
 
@@ -100,14 +99,17 @@ function App() {
     name.forEach((element: any) => {
       element.classList.remove("opacity-0");
 
-      element.innerHTML = file.name;
+      element.innerHTML = `${file[0].name}&nbsp. . .`;
     });
   };
+  var sendQueue: any = [];
 
   const Sendmsg = (e: any) => {
+    let i = 0;
+    let n = file.length - 1;
     e.preventDefault();
     if (window.Worker) {
-      myWorker.postMessage(file);
+      myWorker.postMessage(file[0]);
     }
     var prog1: any = document.querySelector(".progress");
     prog1.classList.remove("w-0");
@@ -117,40 +119,89 @@ function App() {
       .querySelectorAll("#send_cntrl")
       ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
     document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
-    let dlen = 0;
-    myWorker.onmessage = (e) => {
-      console.log(e.data.w);
-      if (e.data.toString() === "completed") {
-        document
-          .querySelectorAll("#send_cntrl")
-          ?.forEach((e: any) => e.removeAttribute("disabled"));
-        document.querySelectorAll(".send_btn")[0].innerHTML = "Send";
-        setTimeout(() => {
-          var prog: any = document.getElementById("progress");
 
-          prog.style.width = "0";
-        }, 3000);
-        dataChannel.send(`type:${file.name}`);
+    myWorker.onmessage = (e) => {
+      // console.log(e.data.chunk);
+      if (e.data.toString() === "completed") {
+        console.log(e.data.toString());
+        completedActions();
+        dataChannel.send(`type:${file[i].name}`);
+        i++;
         dataChannel.send("completed");
-        document
-          .querySelector(".toast")
-          ?.classList.toggle("completed_animation");
-        setTimeout(() => {
-          document
-            .querySelector(".toast")
-            ?.classList.toggle("completed_animation");
-        }, 3000);
+
+        //  sendRem();
       }
 
       prog.style.width = `${Math.abs(e.data.w)}%`;
 
+      // console.count("onmsg");
+
       dataChannel.send(e.data.chunk);
+      // if (dataChannel.bufferedAmount < 1024) {
+      //   // console.log("Buffered amount:", dataChannel.bufferedAmount);
+      //   sendQueue.length == 0 && dataChannel.send(e.data.chunk);
+      //   sendQueue.length !== 0 &&
+      //     (function () {
+      //       dataChannel.send(sendQueue.shift());
+      //       sendQueue.push(e.data.chunk);
+      //     })();
+      // } else if (
+      //   dataChannel.bufferedAmount < 1024*64 &&
+      //   sendQueue.length == 0 &&
+      //   comp
+      // ) {
+      //   console.log("complete triggred");
+      //   dataChannel.send(`type:${file.name}`);
+      //   dataChannel.send("completed");
+      //   completedActions();
+      // } else {
+      //   sendQueue.push(e.data.chunk);
+      //   console.log("push to queuwe");
+      //   //  while (sendQueue.length > 0) {
+      //   //   //  console.log(sendQueue, "snd queue");
+      //   //    if (dataChannel.bufferedAmount < 1024) {
+      //   //      dataChannel.send(sendQueue.shift());
+      //   //    }}
+
+      //   if (comp) {
+      //     // sendRem();
+      //   }
+      // }
+
+      // console.log("Buffered amount:", dataChannel.bufferedAmount);
     };
+    dataChannel.addEventListener("message", (event) => {
+      console.log("got msg from client", event);
+      if (window.Worker) {
+        i <= n && myWorker.postMessage(file[i]);
+      }
+    });
+
     // File transfer animation
 
     let name: any = document.querySelector(".toast");
     name.innerHTML = "Transfer Completed ⚡";
   };
+
+  function completedActions() {
+    {
+      document
+        .querySelectorAll("#send_cntrl")
+        ?.forEach((e: any) => e.removeAttribute("disabled"));
+      document.querySelectorAll(".send_btn")[0].innerHTML = "Send";
+      setTimeout(() => {
+        var prog: any = document.getElementById("progress");
+
+        prog.style.width = "0";
+      }, 3000);
+      document.querySelector(".toast")?.classList.toggle("completed_animation");
+      setTimeout(() => {
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+      }, 3000);
+    }
+  }
 
   async function createRoom() {
     const offer = await peerConnection.current.createOffer();
@@ -364,6 +415,8 @@ function App() {
       // }
 
       if (e.data.toString() === "completed") {
+        console.log("completed on client");
+
         file = new Blob(fileChunks);
         let t = type.current;
         blobUrl = URL.createObjectURL(file);
@@ -390,9 +443,10 @@ function App() {
             .querySelector(".toast")
             ?.classList.toggle("completed_animation");
           fileChunks = [""];
-        }, 10000);
+          clientDc.send("msg from client");
+        }, 1000);
       } else {
-        console.count();
+        console.count("rec chunks");
         fileChunks.push(e.data);
       }
     });
@@ -569,6 +623,7 @@ function App() {
         <label className="custom-file-upload fileinput flex   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.21)] bg-lb  text-white px-5 py-3 rounded-[25px] min-w-[150px]">
           Choose File
           <input
+            multiple
             id="send_cntrl"
             type="file"
             className="send"
