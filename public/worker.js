@@ -1,7 +1,7 @@
 onmessage = (e) => {
   var file = e.data;
   file.arrayBuffer().then((buffer) => {
-    const chunkSize = 32 * 1024;
+    const chunkSize = 16 * 1024;
     let total_len = buffer.byteLength;
     while (buffer.byteLength) {
       const chunk = buffer.slice(0, chunkSize);
