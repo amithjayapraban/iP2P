@@ -1,5 +1,5 @@
-export default function Logo({baseURL}:any,connection:boolean) {
-    console.log(connection)
+export default function Logo({baseURL,connection}:any) {
+
   return (
     <svg
       onClick={() => {

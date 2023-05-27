@@ -45,7 +45,7 @@ input[type="file"] {
     "myname myname"
     "controls controls"
     "foot foot";
-  background: radial-gradient(circle, #1e2a44 5%, #162137 70%);
+
 }
 .logo {
   grid-area: logo;
@@ -101,3 +101,4 @@ input[type="file"] {
     top: 90% !important;
   }
 }
+ 

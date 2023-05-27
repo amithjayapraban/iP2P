@@ -52,7 +52,7 @@ function App() {
       const message = JSON.parse(e.data);
 
       const { id, type } = message;
-      console.log(type, message, "ssss");
+
       if (type === "peers") {
         setPeers(
           message.keys.filter((key: string) => {
@@ -71,6 +71,7 @@ function App() {
             const a = async () => {
               const answer = await peerConnection.current.createAnswer();
               await peerConnection.current.setLocalDescription(answer);
+              setDestination(id);
               ws.current.send(
                 JSON.stringify({
                   id,
@@ -101,11 +102,18 @@ function App() {
 
   const dataChannel = peerConnection.current.createDataChannel("mydata");
   dataChannel.addEventListener("open", (event) => {
-    console.log("DC open");
+    window.document.title = "iP2P - Connected ⚡";
+    setConnection(true);
+    console.log("dc open");
+  });
+  dataChannel.addEventListener("close", (event) => {
+    console.log("dc closed");
+    window.document.title = "iP2P - Disconnected";
+    setConnection(false);
   });
 
   peerConnection.current.onicecandidate = async (e) => {
-    console.log(e, "once");
+    // console.log(e, "once");
 
     if (e.candidate) {
       const { candidate, sdpMid } = e.candidate;
@@ -120,10 +128,13 @@ function App() {
     }
   };
   peerConnection.current.addEventListener("connectionstatechange", (event) => {
-    console.log(
-      peerConnection.current.connectionState,
-      "connectionstatechange"
-    );
+    console.log(peerConnection.current.connectionState, "connectionState");
+    peerConnection.current.connectionState === "disconnected"
+      ? (window.document.title = "iP2P - Disconnected")
+      : "";
+    peerConnection.current.connectionState === "connected"
+      ? (window.document.title = "iP2P - Connected ⚡")
+      : "";
   });
 
   async function offerPeerConnection(id: string) {
@@ -138,312 +149,161 @@ function App() {
     );
   }
 
-
   // const dataChannel = peerConnection.current.createDataChannel("mydata");
   // dataChannel.bufferedAmountLowThreshold = 1024;
   // dataChannel.addEventListener("open", (event) => {});
-  // var file: any;
-  // //Web worker
-  // const myWorker = new Worker("/worker.js");
-  // const fileAdd = (e: any) => {
-  //   e.preventDefault();
-  //   file = e.target.files;
-  //   var prog: any = document.getElementById("progress");
-  //   prog.style.width = `0%`;
+  var file: any;
+  //Web worker
+  const myWorker = new Worker("/worker.js");
+  const fileAdd = (e: any) => {
+    e.preventDefault();
+    file = e.target.files;
+    var prog: any = document.getElementById("progress");
+    prog.style.width = `0%`;
 
-  //   let name: any = document.querySelectorAll(".file_name");
-  //   name.forEach((element: any) => {
-  //     element.classList.remove("opacity-0");
+    let name: any = document.querySelectorAll(".file_name");
+    name.forEach((element: any) => {
+      element.classList.remove("opacity-0");
 
-  //     element.innerHTML = `${file[0].name}&nbsp. . .`;
-  //   });
-  // };
+      element.innerHTML = `${file[0].name}&nbsp. . .`;
+    });
+  };
   // var sendQueue: any = [];
 
-  // const Sendmsg = (e: any) => {
-  //   let i = 0;
-  //   let n = file.length - 1;
-  //   e.preventDefault();
-  //   if (window.Worker) {
-  //     myWorker.postMessage(file[0]);
-  //   }
-  //   var prog1: any = document.querySelector(".progress");
-  //   prog1.classList.remove("w-0");
-  //   var prog: any = document.getElementById("progress");
-  //   prog.style.opacity = "1";
-  //   document
-  //     .querySelectorAll("#send_cntrl")
-  //     ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
-  //   document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
+  const Sendmsg = (e: any) => {
+    dataChannel.send("e.data.chunk");
+    let i = 0;
+    let n = file.length - 1;
+    e.preventDefault();
+    if (window.Worker) {
+      myWorker.postMessage(file[0]);
+    }
+    var prog1: any = document.querySelector(".progress");
+    prog1.classList.remove("w-0");
+    var prog: any = document.getElementById("progress");
+    prog.style.opacity = "1";
+    document
+      .querySelectorAll("#send_cntrl")
+      ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
+    document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
 
-  //   myWorker.onmessage = (e) => {
-  //     // console.log(e.data.chunk);
-  //     if (e.data.toString() === "completed") {
-  //       console.log(e.data.toString());
-  //       completedActions();
-  //       dataChannel.send(`type:${file[i].name}`);
-  //       i++;
-  //       dataChannel.send("completed");
+    myWorker.onmessage = (e) => {
+      // console.log(e.data.chunk);
+      if (e.data.toString() === "completed") {
+        console.log(e.data.toString());
+        completedActions();
+        dataChannel.send(`type:${file[i].name}`);
+        i++;
+        dataChannel.send("completed");
 
-  //       //  sendRem();
-  //     }
+        //  sendRem();
+      }
 
-  //     prog.style.width = `${Math.abs(e.data.w)}%`;
+      prog.style.width = `${Math.abs(e.data.w)}%`;
 
-  //     // console.count("onmsg");
+      // console.count("onmsg");
 
-  //     dataChannel.send(e.data.chunk);
-  //   };
+      dataChannel.send(e.data.chunk);
+    };
 
-  //   dataChannel.addEventListener("message", (event) => {
-  //     console.log("got msg from client", event);
-  //     if (window.Worker) {
-  //       i <= n && myWorker.postMessage(file[i]);
-  //     }
-  //   });
+    // dataChannel.addEventListener("message", (event) => {
+    //   console.log("got msg from client", event);
+    //   if (window.Worker) {
+    //     i <= n && myWorker.postMessage(file[i]);
+    //   }
+    // });
 
-  //   // File transfer animation
+    // File transfer animation
 
-  //   let name: any = document.querySelector(".toast");
-  //   name.innerHTML = "Transfer Completed ⚡";
-  // };
+    let name: any = document.querySelector(".toast");
+    name.innerHTML = "Transfer Completed ⚡";
+  };
 
-  // function completedActions() {
-  //   {
-  //     document
-  //       .querySelectorAll("#send_cntrl")
-  //       ?.forEach((e: any) => e.removeAttribute("disabled"));
-  //     document.querySelectorAll(".send_btn")[0].innerHTML = "Send";
-  //     setTimeout(() => {
-  //       var prog: any = document.getElementById("progress");
+  function completedActions() {
+    {
+      document
+        .querySelectorAll("#send_cntrl")
+        ?.forEach((e: any) => e.removeAttribute("disabled"));
+      document.querySelectorAll(".send_btn")[0].innerHTML = "Send";
+      setTimeout(() => {
+        var prog: any = document.getElementById("progress");
 
-  //       prog.style.width = "0";
-  //     }, 3000);
-  //     document.querySelector(".toast")?.classList.toggle("completed_animation");
-  //     setTimeout(() => {
-  //       document
-  //         .querySelector(".toast")
-  //         ?.classList.toggle("completed_animation");
-  //     }, 3000);
-  //   }
-  // }
+        prog.style.width = "0";
+      }, 3000);
+      document.querySelector(".toast")?.classList.toggle("completed_animation");
+      setTimeout(() => {
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+      }, 3000);
+    }
+  }
 
-  // async function createRoom() {
-  //   const offer = await peerConnection.current.createOffer();
-  //   await peerConnection.current.setLocalDescription(offer);
-
-  //   try {
-  //     // const docRef = await addDoc(collection(db, "room"), {
-  //     //   type: "offer",
-  //     //   offer: JSON.stringify(offer),
-  //     //   name: myname.current,
-  //     // });
-  //     // setDocId(docRef.id);
-  //     // setRoomId(myname.current);
-  //   } catch (e) {
-  //     console.error("Error adding document: ", e);
-  //   }
-  // }
-
-  // // const q = query(
-  // //   collection(db, "room"),
-  // //   limit(1),
-  // //   where("name", "==", `${myname.current}_`),
-  // //   where("type", "==", "answer")
-  // // );
-  // // onSnapshot(q, (querySnapshot) => {
-  // //   querySnapshot.forEach((doc) => {
-  // //     peerConnection.current.setRemoteDescription(
-  // //       new RTCSessionDescription(JSON.parse(doc.data().offer))
-  // //     );
-  // //     let candidate = doc.data().candidate;
-
-  // //     peerConnection.current.addIceCandidate(JSON.parse(candidate));
-  // //   });
-  // // });
-
-  // peerConnection.current.onicecandidate = async (e) => {
-  //   // const roomRef = collection(db, "room");
-  //   // const q = query(roomRef, limit(1), where("name", "==", myname.current));
-  //   // const queryGet: any = await getDocs(q);
-  //   // queryGet.forEach(async (doc: any) => {
-  //   //   var c = doc.ref._path.segments[1];
-  //   //   const ref = docup(db, "room", c);
-  //   //   if (e.candidate) {
-  //   //     const docRef = await updateDoc(ref, {
-  //   //       candidate: JSON.stringify(e.candidate),
-  //   //       name: myname.current,
-  //   //     });
-  //   //   }
-  //   // });
-  // };
-
-  // peerConnection.current.addEventListener("connectionstatechange", (event) => {
-  //   if (peerConnection.current.connectionState === "connected") {
-  //     setConnection(true);
-  //     window.document.title = "iP2P - Connected!";
-  //     document.querySelectorAll(".send_btn")[0].removeAttribute("disabled");
-  //     let name: any = document.querySelector(".toast");
-  //     name.innerHTML = "Connected ⚡";
-  //     document.querySelector(".toast")?.classList.toggle("completed_animation");
-  //     setTimeout(() => {
-  //       document
-  //         .querySelector(".toast")
-  //         ?.classList.toggle("completed_animation");
-  //     }, 1000);
-  //   }
-  // });
-
-  // const peerConnection_client = useRef(new RTCPeerConnection(configuration));
-
-  // peerConnection_client.current.addEventListener(
-  //   "connectionstatechange",
-  //   (event) => {
-  //     if (peerConnection_client.current.connectionState === "connected") {
-  //       setConnection(true);
-  //       window.document.title = "iP2P - Connected!";
-
-  //       let name: any = document.querySelector(".toast");
-  //       name.innerHTML = "Connected ⚡";
-  //       document
-  //         .querySelector(".toast")
-  //         ?.classList.toggle("completed_animation");
-  //       setTimeout(() => {
-  //         document
-  //           .querySelector(".toast")
-  //           ?.classList.toggle("completed_animation");
-  //       }, 1000);
-  //     }
-  //   }
-  // );
-
-  // async function Recieve() {
-  //   document.querySelector(".recieve_btn")?.classList.toggle("hidden");
-  //   document.querySelector(".pulsing")?.classList.toggle("hidden");
-  //   let p = window.location.pathname.slice(1);
-  //   // const roomRef = collection(db, "room");
-  //   // const q = query(roomRef, limit(1), where("name", "==", p));
-  //   // const queryGet: any = await getDocs(q);
-  //   // queryGet.forEach(async (doc: any) => {
-  //   //   if (doc.data()) {
-  //   //     peerConnection_client.current.setRemoteDescription(
-  //   //       new RTCSessionDescription(JSON.parse(doc.data().offer))
-  //   //     );
-  //   //     const answer = await peerConnection_client.current.createAnswer();
-  //   //     await peerConnection_client.current.setLocalDescription(answer);
-
-  //   //     peerConnection_client.current.addEventListener(
-  //   //       "icecandidate",
-  //   //       (e: any) => {}
-  //   //     );
-  //   // try {
-  //   //   const docRef = await addDoc(collection(db, "room"), {
-  //   //     type: "answer",
-  //   //     offer: JSON.stringify(answer),
-  //   //     name: `${p}_`,
-  //   //   });
-  //   // } catch (e) {}
-  //   //   }
-  //   // };
-
-  //   // const quer = query(
-  //   //   collection(db, "room"),
-  //   //   limit(2),
-  //   //   where("name", "==", `${p}`),
-  //   //   where("type", "==", "offer")
-  //   // );
-  //   // onSnapshot(quer, (querySnapshot) => {
-  //   //   querySnapshot.forEach((doc) => {
-  //   //     let candidate = doc.data().candidate;
-
-  //   //     peerConnection_client.current.addIceCandidate(JSON.parse(candidate));
-  //   //   });
-  //   // });
-
-  //   //   const fetch: any = await getDocs(quer);
-  //   //   fetch.forEach(async (doc: any) => {
-  //   //     let candidate = doc.data().candidate;
-  //   //     peerConnection_client.current.addIceCandidate(JSON.parse(candidate));
-  //   //   });
-  //   // }
-  // }
-  // peerConnection_client.current.onicecandidate = async (e) => {
-  //   let p = window.location.pathname.slice(1);
-
-  //   // const roomRef = collection(db, "room");
-  //   // const q = query(roomRef, limit(1), where("name", "==", `${p}_`));
-  //   // const queryG: any = await getDocs(q);
-  //   // queryG.forEach(async (doc: any) => {
-  //   //   var c = doc.ref._path.segments[1];
-
-  //   //   if (e.candidate) {
-  //   //     const ref = docup(db, "room", c);
-  //   //     const docRef = await updateDoc(ref, {
-  //   //       candidate: JSON.stringify(e.candidate),
-  //   //       name: `${p}_`,
-  //   //     });
-  //   //   }
-  //   // });
-  // };
-  // var blobUrl: any;
+  var blobUrl: any;
 
   // peerConnection_client.current.ondatachannel = (e: any) => {
   //   var clientDc: any = e.channel;
 
-  //   var fileChunks: any = [];
-  //   var file;
+  var type = useRef("");
 
-  //   clientDc.addEventListener("message", (e: any) => {
-  //     var prog1: any = document.querySelector(".progress");
-  //     prog1.classList.remove("w-0");
-  //     var prog: any = document.getElementById("progress");
+  peerConnection.current.ondatachannel = (e: any) => {
+    var clientDc: any = e.channel;
 
-  //     if (e.data.toString()) {
-  //       if (e.data.toString() !== "completed") {
-  //         type.current = e.data.toString();
-  //       }
-  //     }
+    var fileChunks: any = [];
+    var file;
 
-  //     if (e.data.toString() === "completed") {
-  //       console.log("completed on client");
+    clientDc.addEventListener("message", (e: any) => {
+      var prog1: any = document.querySelector(".progress");
+      prog1.classList.remove("w-0");
+      var prog: any = document.getElementById("progress");
 
-  //       file = new Blob(fileChunks);
-  //       let t = type.current;
-  //       blobUrl = URL.createObjectURL(file);
-  //       var link = document.createElement("a");
-  //       link.href = blobUrl;
-  //       link.download = t.substring(5);
-  //       document.body.appendChild(link);
-  //       var a = link.dispatchEvent(
-  //         new MouseEvent("click", {
-  //           bubbles: true,
-  //           cancelable: true,
-  //           view: window,
-  //         })
-  //       );
-  //       document.body.removeChild(link);
-  //       URL.revokeObjectURL(blobUrl);
-  //       let name: any = document.querySelector(".toast");
-  //       name.innerHTML = "File recieved ⚡";
-  //       document
-  //         .querySelector(".toast")
-  //         ?.classList.toggle("completed_animation");
-  //       setTimeout(() => {
-  //         document
-  //           .querySelector(".toast")
-  //           ?.classList.toggle("completed_animation");
-  //         fileChunks = [""];
-  //         clientDc.send("msg from client");
-  //       }, 1000);
-  //     } else {
-  //       console.count("rec chunks");
-  //       fileChunks.push(e.data);
-  //     }
-  //   });
-  // };
+      // const clientWorker = new Worker("/receiver_worker.js");
+
+      if (e.data.toString()) {
+        if (e.data.toString() !== "completed") {
+          type.current = e.data.toString();
+        }
+      }
+
+      if (e.data.toString() === "completed") {
+        console.log("completed on client");
+
+        file = new Blob(fileChunks);
+        let t = type.current;
+        blobUrl = URL.createObjectURL(file);
+        var link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = t.substring(5);
+        document.body.appendChild(link);
+        var a = link.dispatchEvent(
+          new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          })
+        );
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        let name: any = document.querySelector(".toast");
+        name.innerHTML = "File recieved ⚡";
+        document
+          .querySelector(".toast")
+          ?.classList.toggle("completed_animation");
+        setTimeout(() => {
+          document
+            .querySelector(".toast")
+            ?.classList.toggle("completed_animation");
+          fileChunks = [""];
+          // clientDc.send("msg from client");
+        }, 1000);
+      } else {
+        fileChunks.push(e.data);
+      }
+    });
+  };
 
   return (
-    <div className="home relative bg-b h-screen overflow-hidden  ">
+    <div className="home relative  text-b h-screen overflow-hidden  ">
       <div className="text-white toast completed_animation absolute top-3 md:top-[90%]  right-[25%] left-[25%] md:right-10  md:left-[unset] flex items-center justify-center  rounded-[25px] md:rounded-[5px] p-2 py-3 z-[66] text-xs bg-g ">
         Transfer Completed ⚡
       </div>
@@ -471,13 +331,22 @@ function App() {
 
         <>
           <div className=" items-center rounded-[35px]  p-1 gap-6 justify-center self-center justify-self-end hidden md:flex md:rounded  h-[min-content]">
-            <div className="md:justify-self-end justify-self-center  text-xl  md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
+            <div className="md:justify-self-end justify-self-center  text-xl  md:bg-transparent   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center   font-mono ">
               <img
                 className="w-6 h-6 md:w-8 md:h-8 rounded-full "
                 src={`data:image/svg+xml;utf8,${generateFromString(myname)}`}
               />
-              {myname}
+              {myname} {destination && `-----------${destination}`}
             </div>
+          </div>
+
+          <div className="md:justify-self-end justify-self-center  text-xs md:bg-transparent md:hidden   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  font-mono ">
+            <img
+              className="w-6 h-6 md:w-8 md:h-8 rounded-full "
+              src={`data:image/svg+xml;utf8,${generateFromString(myname)}`}
+            />
+            {myname}
+            {destination && `-----------${destination}`}
           </div>
         </>
       </div>
@@ -485,58 +354,47 @@ function App() {
         id="progress"
         className="bg-g w-0 absolute  progress h-1 top-0"
       ></span>
-      <div className="md:justify-self-end justify-self-center   md:bg-transparent md:hidden   rounded-[35px]  inline-flex items-center gap-1 md:mr-6  md:self-center myname  justify-center  text-white font-mono ">
-        <img
-          className="w-6 h-6 md:w-8 md:h-8 rounded-full "
-          src={`data:image/svg+xml;utf8,${generateFromString(myname)}`}
-        />
-        {myname}
-      </div>
 
       <div
         id="bottom-card"
-        className=" md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-1 md:gap-2 flex-col md:flex-ro w rounded-t-[35px] md:rounded-[35px]  "
+        className=" md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-1 md:gap-2 flex-col md:flex-row md:flex-wrap rounded-t-[35px] md:rounded-[35px]  "
       >
-        {peers.map((i: any) => (
-          <button
-            onClick={() => {
-              offerPeerConnection(i);
-              setDestination(i);
-            }}
-            className="bg-g px-1 text-b py-1"
-          >
-            {i}
-          </button>
-        ))}
-
-        {/* <label className="custom-file-upload fileinput flex   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.21)] bg-lb  text-white px-5 py-3 rounded-[25px] min-w-[150px]">
-          Choose File
-          <input
-            multiple
-            id="send_cntrl"
-            type="file"
-            className="send"
-            // onChange={(e: any) => fileAdd(e)}
-          />
-        </label> */}
-        <span className="file_name text-[.5rem]  text-gray-200 opacity-0">
-          ""
-        </span>
-
-        {/* <button
-          id="send_cntrl"
-          className="btn send_btn cursor-pointer shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g  text-white px-5 py-3 rounded-[25px] min-w-[150px] "
-          // onClick={Sendmsg}
-        >
-          Send
-        </button> */}
-        {/* <button
-          id="recieve_btn"
-          className="btn recieve_btn hidden shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g text-2xl text-white px-5 py-3 rounded-[25px] min-w-[150px] "
-          // onClick={Recieve}
-        >
-          Recieve
-        </button> */}
+        {!connection ? (
+          peers.map((i: any) => (
+            <button
+              onClick={() => {
+                offerPeerConnection(i);
+                setDestination(i);
+              }}
+              className="bg-g px-1 text-xs rounded-3xl text-b py-1"
+            >
+              {i}
+            </button>
+          ))
+        ) : (
+          <div className="md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-4 flex-col md:flex- row md:flex-wrap rounded-t-[35px] md:rounded-[35px] ">
+            <span className="file_name text-[.5rem]  text-gray-200 opacity-0">
+              ""
+            </span>{" "}
+            <label className="custom-file-upload fileinput flex   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.21)] bg-lb  text-white px-5 py-3 rounded-[25px] min-w-[150px]">
+              Choose File
+              <input
+                multiple
+                id="send_cntrl"
+                type="file"
+                className="send"
+                onChange={(e: any) => fileAdd(e)}
+              />
+            </label>
+            <button
+              id="send_cntrl"
+              className="btn send_btn cursor-pointer shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g  text-white px-5 py-3 rounded-[25px] min-w-[150px] "
+              onClick={Sendmsg}
+            >
+              Send
+            </button>
+          </div>
+        )}
 
         <div className=" flex  flex-col gap-8 justify-center items-center search text-2xl text-gray-300">
           <div className="hidden pulsing self-center"></div>
