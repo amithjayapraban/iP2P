@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/S.png" />
-    <meta name="theme-color" content="#16137" />
+    <meta name="theme-color" />
     <link rel="icon" type="image/png" href="/S.png" />
     <link rel="shortcut icon" href="/S.png" />
     <link rel="apple-touch-icon" href="/S.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>iP2P</title>
   </head>
   <script type="module">
@@ -15,6 +18,7 @@
     if ("serviceWorker" in navigator) {
       registerSW();
     }
+    
   </script>
   <body>
     <div id="root"></div>

@@ -1,13 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+
 html,
 body {
   padding: 0;
   margin: 0;
-  background: #162137;
   font-family: "Open Sans", sans-serif, -apple-system, BlinkMacSystemFont,
     Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
     Helvetica Neue, sans-serif;
-  color-scheme: inherit;
+  background-color: var(--bg);
+  overflow-y: hidden;
 }
 
 * {
@@ -20,11 +21,11 @@ body {
 .pulsing {
   width: 30px;
   height: 30px;
-  border-radius: 150px;
-  background: #d4d4d4;
+  background: #C5C5C5;
   box-shadow: 0 0 0 0 #3ef994;
   animation: pl1 1s infinite;
 }
+
 @keyframes pl1 {
   100% {
     box-shadow: 0 0 0 30px #0000;
@@ -34,71 +35,34 @@ input[type="file"] {
   display: none;
 }
 
-.home {
-  display: grid;
-  width: 100%;
-
-  grid-template-rows: 0.002fr 3fr 2fr 1fr;
-  grid-template-areas:
-    "logo q"
-    "banner banner"
-    "myname myname"
-    "controls controls"
-    "foot foot";
-
-}
-.logo {
-  grid-area: logo;
-}
-.q {
-  grid-area: q;
-}
-.banner {
-  grid-area: banner;
-}
-
-.myname {
-  grid-area: myname;
-}
-.controls {
-  grid-area: controls;
-}
-.foot {
-  grid-area: foot;
-}
 .completed_animation {
   transition: all 0.4s ease-in-out;
   top: -100% !important;
 }
-.outer_controls {
-  background: radial-gradient();
+
+#peers {
+  position: relative;
+}
+.app {
+  background-color: var(--bg);
+  background: repeating-radial-gradient(
+    circle,
+    transparent 0.1%,
+    var(--gray) 0.2%,
+    var(--gray) 0.29%,
+    transparent 0.39%,
+    transparent 10.6%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 200%;
+  background-position: 0 15%;
 }
 
-@media (min-width: 768px) {
-  .home {
-    grid-template-rows: 0.2fr 0.2fr 3fr 1fr;
+@media screen and ( max-width:500px) and (min-height:300px) {
+  .app {
+     background-size: 100% 200%;
+     background-position: 0 15%;
+  }
+  }
 
-    grid-template-columns: 3fr 3fr;
-    grid-template-areas:
-      "logo q"
-      "myname myname"
-      "banner controls";
-  }
-  .myname {
-    grid-area: banner;
-  }
-  .md_brand {
-    grid-area: myname;
-    grid-column-start: 1;
-  }
-  .q {
-    grid-area: q;
-  }
-  .completed_animation {
-    right: -100% !important;
 
-    left: inherit !important;
-    top: 90% !important;
-  }
-}
- 
