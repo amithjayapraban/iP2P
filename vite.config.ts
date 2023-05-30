@@ -12,13 +12,13 @@ export default defineConfig({
         enabled: true,
       },
       base: "/",
-      includeAssets: ["S.png"],
+      includeAssets: ["S.png,theme.svg"],
       manifest: {
         name: "P2P",
         short_name: "P2P",
 
         description: "P2P Sharing",
-        theme_color: "#162137",
+        theme_color: "",
         icons: [
           {
             src: "512.png",
