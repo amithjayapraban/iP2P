@@ -1,13 +1,12 @@
-export default function Logo({baseURL,connection}:any) {
-
+export default function Logo({ baseURL, connection }: any) {
   return (
     <svg
       onClick={() => {
         window.location.assign(baseURL);
       }}
-      className="logo  flex justify-items-start  items-start  self-end md:ml-6 md:mt-6 ml-3 mt-3  md:scale-[.71] scale-[.7] origin-top-left  "
-      width="59"
-      height="57"
+      className="logo cursor-pointer h-6 w-6 flex justify-items-start  items-start  self-center  "
+      width="45"
+      height="45"
       viewBox="0 0 128 128"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -15,7 +14,7 @@ export default function Logo({baseURL,connection}:any) {
       {connection ? (
         <rect x="8.67798" width="112.814" height="128" rx="4" fill="#3EF994" />
       ) : (
-        <rect x="8.67798" width="112.814" height="128" rx="4" fill="#C5C5C5" />
+        <rect x="8.67798" width="112.814" height="128" rx="4" fill="#4f4f4f" />
       )}
       <path
         opacity="0.8"
@@ -25,12 +24,12 @@ export default function Logo({baseURL,connection}:any) {
       {connection ? (
         <rect y="8.98254" width="128" height="119.018" rx="4" fill="#3EF994" />
       ) : (
-        <rect y="8.98254" width="128" height="119.018" rx="4" fill="#C5C5C5" />
+        <rect y="8.98254" width="128" height="119.018" rx="4" fill="#4f4f4f" />
       )}
       {connection ? (
         <rect y="8.98254" width="128" height="119.018" rx="4" fill="#3EF994" />
       ) : (
-        <rect y="8.98254" width="128" height="119.018" rx="4" fill="#C5C5C5" />
+        <rect y="8.98254" width="128" height="119.018" rx="4" fill="#4f4f4f" />
       )}
       <path
         d="M40.9948 99.8066L65.6429 66.1838L81.2224 77.1493L40.9948 99.8066Z"

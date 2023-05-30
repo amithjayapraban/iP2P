@@ -1,14 +1,16 @@
 :root {
   --green: #3ef994;
-  --textc:#121212;
+  --textc:#323232;
   --bg: #fafafa;
-   --gray:#ebebeb;
+   --gray:#f0f0f0;
+    --textgray:#c4c4c4;
 }
 
 [data-theme="dark"] {
   --bg:#121212;
   --textc: #fafafa;
-  --gray:#242424;
+  --gray:#1f1f1f;
+   --textgray:#4f4f4f;
 }
 html,body {
   display:flex;

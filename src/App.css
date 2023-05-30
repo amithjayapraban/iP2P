@@ -1,12 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
-
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: "Open Sans", sans-serif, -apple-system, BlinkMacSystemFont,
-    Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
-    Helvetica Neue, sans-serif;
+  font-family: apple-system, BlinkMacSystemFont, Roboto, "Segoe UI", Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-smoothing: antialiased;
   background-color: var(--bg);
   overflow-y: hidden;
 }
@@ -21,7 +19,7 @@ body {
 .pulsing {
   width: 30px;
   height: 30px;
-  background: #C5C5C5;
+  background: #4f4f4f;
   box-shadow: 0 0 0 0 #3ef994;
   animation: pl1 1s infinite;
 }
@@ -51,18 +49,16 @@ input[type="file"] {
     var(--gray) 0.2%,
     var(--gray) 0.29%,
     transparent 0.39%,
-    transparent 10.6%
+    transparent 12.6%
   );
   background-repeat: no-repeat;
   background-size: 100% 200%;
-  background-position: 0 15%;
+  background-position: 0 11%;
 }
 
-@media screen and ( max-width:500px) and (min-height:300px) {
+@media screen and (max-width: 500px) and (min-height: 300px) {
   .app {
-     background-size: 100% 200%;
-     background-position: 0 15%;
+    background-size: 100% 200%;
+    background-position: 0 13%;
   }
-  }
-
-
+}

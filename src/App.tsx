@@ -5,10 +5,9 @@ import { generateFromString } from "generate-avatar";
 import Info from "./components/Info";
 import Logo from "./components/Logo";
 import Foot from "./components/Foot";
-import MobileDetect from "mobile-detect";
 import { getDeviceType } from "./utils/getDeviceType";
 import Modal from "./components/Modal";
-import ToggleTheme from "./components/toggleTheme";
+import ToggleTheme from "./components/ToggleTheme";
 function App() {
   const [myname, setmyName] = useState("");
   const [destination, setDestination] = useState("");
@@ -34,16 +33,21 @@ function App() {
 
   useEffect(() => {
     //Generates a unique username thats used as room name
-    name.current = generateUsername(" ", 0, 5);
+    name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
 
     openSignaling();
-    if (window.matchMedia) {
+    if (localStorage.getItem("theme")) {
+      let theme = localStorage.getItem("theme");
+      body.setAttribute("data-theme", theme);
+    } else if (window.matchMedia) {
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         body.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
       } else {
         body.setAttribute("data-theme", "light");
+        localStorage.setItem("theme", "light");
       }
     }
     const themeColor: any = document.querySelector('meta[name="theme-color"]');
@@ -215,7 +219,7 @@ function App() {
 
       prog.style.width = `${Math.abs(e.data.w)}%`;
 
-      console.count("chunks");
+      // console.count("chunks");
 
       dataChannel.send(e.data.chunk);
     };
@@ -321,7 +325,7 @@ function App() {
         e.data.toString() !== `undefined` &&
         !e.data.toString().includes("len")
       ) {
-        console.log(e.data);
+        // console.log(e.data);
         iterator++;
         prog.style.width = `${Math.abs(iterator / total_chunks) * 100}%`;
 
@@ -332,16 +336,16 @@ function App() {
 
   return (
     <div className="flex flex-col  app relative text-textc  h-[100svh] overflow-hidden  ">
-      <div className="text-white toast completed_animation absolute top-3 md:top-[90%]  right-[25%] left-[25%] md:right-10  md:left-[unset] flex items-center justify-center  rounded-[25px] md:rounded-[5px] p-2 py-3 z-[66] text-xs bg-g ">
+      <div className="text-bg bg-[var(--textgray)]  italic font-semibold toast completed_animation absolute top-3   right-[25%] left-[25%]  flex items-center justify-center  rounded-lg  p-2 py-3 z-[66] text-xs ">
         Transfer Completed ⚡
       </div>
 
-      <section className="flex justify-between w-full ">
+      <section className="flex items-center p-6 justify-between w-full ">
         <Logo baseURL={baseURL} connection={connection} />
-        <div className="flex md:gap-8 gap-6">
+        <div className="flex items-center md:gap-8 gap-6">
           <ToggleTheme />
           <div
-            className=" cursor-pointer  q text-white self-center justify-self-end w-6 h-6  bg-[#C5C5C5] rounded-full flex justify-center items-center md:mr-6 mr-3"
+            className=" cursor-pointer  q text-white self-center justify-self-end w-6 h-6  bg-[#4f4f4f] rounded-full flex justify-center items-center "
             onClick={() =>
               document.querySelector(".info")?.classList.remove("hidden")
             }
@@ -370,10 +374,18 @@ function App() {
                 offerPeerConnection(i);
                 setDestination(i);
               }}
-              className={`bg-g px-1 m-4 text-bg w-20 h-20  md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
+              className={`bg- [var(--gray)] px-1 m-4 text-textc w-20 h-20  md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
             >
+              <img
+                src={`/src/assets/${i.split("%")[1]}.svg`}
+                alt={`${i.split("%")[1]}`}
+              />
               {i.split("%").map((ele: string, n: any) => (
-                <p className="font-mono">
+                <p
+                  className={`${
+                    n == 1 ? `text-gray-500 text-[.6rem]` : `text-textc`
+                  }`}
+                >
                   {n == 0
                     ? ele.slice(0, 1).toLocaleUpperCase() + ele.slice(1)
                     : ele}
@@ -383,62 +395,50 @@ function App() {
           ))}
         </section>
       ) : (
-        <section className=" h-full self-center w-full md:w-1/2   transition-[1] flex items-center justify-center     text-white  gap-1  ">
+        <section className=" h-full self-center w-full md:w-1/2   transition-[1] flex items-center justify-center  flex-col  text-xs text-white  gap-1  ">
           <label
-            className={`bg-g px-1 flex flex-col items-center justify-center text-bg w-20 h-20 cursor-pointer md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
+            className={` bor der border-[var(--gray)] px-1 flex flex-col items-center justify-center  w-28 h-28 cursor-pointer  rounded-full text-xs  `}
           >
             {" "}
+            <img
+              src={`/src/assets/${destination.split("%")[1]}.svg`}
+              alt={`${destination.split("%")[1]}`}
+            />
+            <input
+              type="file"
+              multiple
+              onChange={(e: any) => fileAdd(e)}
+              className={``}
+            />
+          </label>
+          <span className="flex justify-center flex-col items-center">
             {destination.split("%").map((ele: string, n: any) => (
-              <p className="font-mono">
+              <p
+                className={`${
+                  n == 1 ? `text-gray-400 text-[.6rem]` : `text-textc`
+                }`}
+              >
                 {n == 0
                   ? ele.slice(0, 1).toLocaleUpperCase() + ele.slice(1)
                   : ele}
               </p>
             ))}
-            <input
-              type="file"
-              multiple
-              onChange={(e: any) => fileAdd(e)}
-              className={`bg-g px-1 text-bg w-20 h-20  md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
-            />
-          </label>
+          </span>
         </section>
       )}
       <Modal />
       <div className=" w-full flex flex-col gap-6  mb-5 mt-10 justify-center items-center ">
         <span className=" pulsing rounded-full "></span>
-        <span className="  font-mono ">{myname}</span>
+        <span className="text-xs flex flex-col justify-center items-center ">
+          <span className="text-[var(--textgray)] text-[.6rem] italic">
+            You are known as{" "}
+          </span>
+          {myname.slice(0, 1).toLocaleUpperCase() + myname.slice(1)}
+        </span>
       </div>
-      <Foot />
+      {/* <Foot /> */}
     </div>
   );
 }
 
 export default App;
-
-{
-  /* ) : (
-          <div className="md:mr-6 self-start md:self-center w-full  md:justify-self-end controls transition-[1] md:min-w-[450px] lg:max-w-[550px]  min-h-[250px]     bg-lb  text-white flex  items-center  justify-center gap-4 flex-col md:flex- row md:flex-wrap rounded-t-[35px] md:rounded-[35px] ">
-            <span className="file_name text-[.5rem]  text-gray-200 opacity-0">
-              ""
-            </span>{" "}
-            <label className="custom-file-upload fileinput flex   cursor-pointer  justify-center items-center shadow-[1px_1px_20px_-8px_rgba(20,220,220,.21)] bg-lb  text-white px-5 py-3 rounded-[25px] min-w-[150px]">
-              Choose File
-              <input
-                multiple
-                id="send_cntrl"
-                type="file"
-                className="send"
-                onChange={(e: any) => fileAdd(e)}
-              />
-            </label>
-            <button
-              id="send_cntrl"
-              className="btn send_btn cursor-pointer shadow-[1px_1px_20px_-8px_rgba(20,220,220,.51)] bg-g  text-white px-5 py-3 rounded-[25px] min-w-[150px] "
-              onClick={Sendmsg}
-            >
-              Send
-            </button>
-          </div>
-        )} */
-}
