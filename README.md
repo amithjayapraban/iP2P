@@ -29,7 +29,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-A P2P file sharing web app. <br/> Uses firebase for signalling. 
+A P2P file sharing web app. <br/> Uses WebSockets for signalling. 
 
 ### Screenshots
 
@@ -45,6 +45,7 @@ A P2P file sharing web app. <br/> Uses firebase for signalling.
 * React
 * Tailwind
 * Firebase
+* WebSockets
 
 
 
