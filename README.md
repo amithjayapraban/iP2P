@@ -35,7 +35,9 @@ A P2P file sharing web app. <br/> Uses WebSockets for signalling.
 
 
 <div align="left">
-<img src="public/screenshot.png"  width="150" />
+<img src="public/scrn1.png"  width="150" />
+  <img src="public/scrn3.png"  width="150" />
+  <img src="public/scrn2.png"  width="150" />
 </div>
 
 
