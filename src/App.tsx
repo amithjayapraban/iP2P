@@ -12,7 +12,7 @@ function App() {
   const [destination, setDestination] = useState("");
   const [peers, setPeers] = useState<string[]>([]);
   const [connection, setConnection] = useState(false);
-  const production = false;
+  const production = true;
   var name = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
