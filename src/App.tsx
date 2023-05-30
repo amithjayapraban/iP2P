@@ -6,7 +6,6 @@ import Info from "./components/Info";
 import Logo from "./components/Logo";
 import Foot from "./components/Foot";
 import { getDeviceType } from "./utils/getDeviceType";
-import Modal from "./components/Modal";
 import ToggleTheme from "./components/ToggleTheme";
 function App() {
   const [myname, setmyName] = useState("");
@@ -426,7 +425,6 @@ function App() {
           </span>
         </section>
       )}
-      <Modal />
       <div className=" w-full flex flex-col gap-6  mb-5 mt-10 justify-center items-center ">
         <span className=" pulsing rounded-full "></span>
         <span className="text-xs flex flex-col justify-center items-center ">
