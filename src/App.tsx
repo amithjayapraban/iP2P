@@ -378,7 +378,7 @@ function App() {
               <img
                 height={128}
                 width={128}
-                src={`/assets/${i.split("%")[1]}.svg`}
+                src={`/${i.split("%")[1]}.svg`}
                 alt={`${i.split("%")[1]}`}
               />
               {i.split("%").map((ele: string, n: any) => (
@@ -404,7 +404,7 @@ function App() {
             <img
               height={128}
               width={128}
-              src={`/assets/${destination.split("%")[1]}.svg`}
+              src={`/${destination.split("%")[1]}.svg`}
               alt={`${destination.split("%")[1]}`}
             />
             <input
