@@ -18,7 +18,7 @@ export default function ToggleTheme() {
       onClick={() => toggle()}
       className="text-textc shadow cursor-pointer bg- textc flex w-6 h-6  items-center justify-center aspect-square text-xs rounded-full"
     >
-      <img height={24} width={24} src="/src/assets/theme.svg" alt="" />
+      <img height={24} width={24} src="/assets/theme.svg" alt="" />
     </div>
   );
 }

@@ -376,7 +376,7 @@ function App() {
               className={`bg- [var(--gray)] px-1 m-4 text-textc w-20 h-20  md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
             >
               <img
-                src={`/src/assets/${i.split("%")[1]}.svg`}
+                src={`/assets/${i.split("%")[1]}.svg`}
                 alt={`${i.split("%")[1]}`}
               />
               {i.split("%").map((ele: string, n: any) => (
@@ -400,7 +400,7 @@ function App() {
           >
             {" "}
             <img
-              src={`/src/assets/${destination.split("%")[1]}.svg`}
+              src={`/assets/${destination.split("%")[1]}.svg`}
               alt={`${destination.split("%")[1]}`}
             />
             <input
