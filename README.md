@@ -46,7 +46,7 @@ A P2P file sharing web app. <br/> Uses WebSockets for signalling.
 ### Built With
 * React
 * Tailwind
-* Firebase
+* WebRTC
 * WebSockets
 
 
