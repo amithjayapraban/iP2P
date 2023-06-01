@@ -29,13 +29,15 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-A P2P file sharing web app. <br/> Uses firebase for signalling. 
+A P2P file sharing web app. <br/> Uses WebSockets for signalling. 
 
 ### Screenshots
 
 
 <div align="left">
-<img src="public/screenshot.png"  width="150" />
+<img src="public/scrn1.png"  width="300" />
+  <img src="public/scrn3.png"  width="250" />
+  <img src="public/scrn2.png"  width="200" />
 </div>
 
 
@@ -44,7 +46,8 @@ A P2P file sharing web app. <br/> Uses firebase for signalling.
 ### Built With
 * React
 * Tailwind
-* Firebase
+* WebRTC
+* WebSockets
 
 
 
