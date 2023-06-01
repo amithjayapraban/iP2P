@@ -1,7 +1,7 @@
 onmessage = (e) => {
   var file = e.data;
   file.arrayBuffer().then((buffer) => {
-    const chunkSize = 8 * 1024;
+    const chunkSize = 64000;
     let total_len = buffer.byteLength;
     let total_chunks= total_len/chunkSize;
      postMessage(`len%${total_chunks}`);

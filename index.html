@@ -18,10 +18,12 @@
     if ("serviceWorker" in navigator) {
       registerSW();
     }
-    
   </script>
   <body>
     <div id="root"></div>
+    <audio id="notification">
+      <source src="notification.mp3" type="audio/mp3" />
+    </audio>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

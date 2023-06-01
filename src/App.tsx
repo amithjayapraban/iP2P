@@ -12,7 +12,7 @@ function App() {
   const [destination, setDestination] = useState("");
   const [peers, setPeers] = useState<string[]>([]);
   const [connection, setConnection] = useState(false);
-  const production = true;
+  const production = false;
   var name = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
@@ -27,11 +27,10 @@ function App() {
       },
     ],
   };
-  const peerConnectionMap: any = {};
-  const dataChannelMap: any = {};
 
+const notificationAudio:any=document.getElementById("notification")
   useEffect(() => {
-    //Generates a unique username thats used as room name
+
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
@@ -73,6 +72,7 @@ function App() {
       const { id, type } = message;
 
       if (type === "peers") {
+        console.log(message)
         setPeers(
           message.keys.filter((key: string) => {
             return key.split("%")[0] !== name.current;
@@ -212,7 +212,7 @@ function App() {
         dataChannel.send(`type:${file[i].name}`);
         i++;
         dataChannel.send("completed");
-
+       notificationAudio.play();
         //  sendRem();
       }
 
@@ -303,6 +303,7 @@ function App() {
         );
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
+        notificationAudio.play();
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
         document
