@@ -28,30 +28,30 @@ function App() {
     ],
   };
   const triggerNotification = () => {
-    if (Notification.permission !== "denied") {
-      // Create a new notification
-      var notification = new Notification("Yay!", {
-        icon: "/S.png",
-        body: "File transfer completed successfully",
-      });
+    if ("Notification" in window) {
+      if (Notification.permission !== "denied") {
+        // Create a new notification
+        var notification = new Notification("Yay!", {
+          icon: "/S.png",
+          body: "File transfer completed successfully",
+        });
 
-      // Close the notification when the user clicks on it
-      notification.onclick = function () {
-        notification.close();
-      };
-    } else {
-      // Ask the user for permission to show notifications
-      Notification.requestPermission();
+        // Close the notification when the user clicks on it
+        notification.onclick = function () {
+          notification.close();
+        };
+      } 
     }
   };
 
   const notificationAudio: any = document.getElementById("notification");
   useEffect(() => {
-    localStorage.getItem("notification") == null &&
-      Notification.requestPermission();
-    if (Notification.permission == "denied")
-      localStorage.setItem("notification", JSON.stringify(false));
-
+    if ("Notification" in window) {
+      localStorage.getItem("notification") == null &&
+        Notification.requestPermission();
+      if (Notification.permission == "denied")
+        localStorage.setItem("notification", JSON.stringify(false));
+    }
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
@@ -460,6 +460,7 @@ function App() {
           </span>
           {myname.slice(0, 1).toLocaleUpperCase() + myname.slice(1)}
         </span>
+        <button onClick={()=>{}}>req</button>
       </div>
       {/* <Foot /> */}
     </div>
