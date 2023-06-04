@@ -47,6 +47,11 @@ function App() {
 
   const notificationAudio: any = document.getElementById("notification");
   useEffect(() => {
+    localStorage.getItem("notification") == null &&
+      Notification.requestPermission();
+    if (Notification.permission == "denied")
+      localStorage.setItem("notification", JSON.stringify(false));
+
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
