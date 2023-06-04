@@ -27,10 +27,26 @@ function App() {
       },
     ],
   };
+  const triggerNotification = () => {
+    if (Notification.permission !== "denied") {
+      // Create a new notification
+      var notification = new Notification("Yay!", {
+        icon: "/S.png",
+        body: "File transfer completed successfully",
+      });
 
-const notificationAudio:any=document.getElementById("notification")
+      // Close the notification when the user clicks on it
+      notification.onclick = function () {
+        notification.close();
+      };
+    } else {
+      // Ask the user for permission to show notifications
+      Notification.requestPermission();
+    }
+  };
+
+  const notificationAudio: any = document.getElementById("notification");
   useEffect(() => {
-
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
@@ -72,7 +88,7 @@ const notificationAudio:any=document.getElementById("notification")
       const { id, type } = message;
 
       if (type === "peers") {
-        console.log(message)
+        console.log(message);
         setPeers(
           message.keys.filter((key: string) => {
             return key.split("%")[0] !== name.current;
@@ -212,7 +228,7 @@ const notificationAudio:any=document.getElementById("notification")
         dataChannel.send(`type:${file[i].name}`);
         i++;
         dataChannel.send("completed");
-       notificationAudio.play();
+        notificationAudio.play();
         //  sendRem();
       }
 
@@ -286,6 +302,7 @@ const notificationAudio:any=document.getElementById("notification")
       if (e.data.toString() === "completed") {
         [iterator, total_chunks] = [0, 0];
         console.log("completed on client");
+        triggerNotification();
         file = new Blob(fileChunks);
         let t = type.current;
         console.log(t, "ttt");
