@@ -46,12 +46,7 @@ function App() {
 
   const notificationAudio: any = document.getElementById("notification");
   useEffect(() => {
-    if ("Notification" in window) {
-      localStorage.getItem("notification") == null &&
-        Notification.requestPermission();
-      if (Notification.permission == "denied")
-        localStorage.setItem("notification", JSON.stringify(false));
-    }
+    
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
@@ -460,7 +455,12 @@ function App() {
           </span>
           {myname.slice(0, 1).toLocaleUpperCase() + myname.slice(1)}
         </span>
-        <button onClick={()=>{}}>req</button>
+        <button onClick={()=>{if ("Notification" in window) {
+      localStorage.getItem("notification") == null &&
+        Notification.requestPermission();
+      if (Notification.permission == "denied")
+        localStorage.setItem("notification", JSON.stringify(false));
+    }}}>req</button>
       </div>
       {/* <Foot /> */}
     </div>
