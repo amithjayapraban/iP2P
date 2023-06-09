@@ -352,7 +352,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col  app relative text-textc  h-[100svh] overflow-hidden  ">
+    <div className="flex flex-col  app relative text-textc  h-[100svh] md:screen overflow-hidden  ">
       <div className="text-bg bg-[var(--textgray)]  italic font-semibold toast completed_animation absolute top-3   right-[25%] left-[25%]  flex items-center justify-center  rounded-lg  p-2 py-3 z-[66] text-xs ">
         Transfer Completed ⚡
       </div>
