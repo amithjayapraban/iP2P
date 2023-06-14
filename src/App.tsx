@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { generateUsername } from "unique-username-generator";
-import { generateFromString } from "generate-avatar";
 import Info from "./components/Info";
 import Logo from "./components/Logo";
-import Foot from "./components/Foot";
 import { getDeviceType } from "./utils/getDeviceType";
 import ToggleTheme from "./components/ToggleTheme";
 function App() {
@@ -27,26 +25,23 @@ function App() {
       },
     ],
   };
-  const triggerNotification = () => {
-    if ("Notification" in window) {
-      if (Notification.permission !== "denied") {
-        // Create a new notification
-        var notification = new Notification("Yay!", {
-          icon: "/S.png",
-          body: "File transfer completed successfully",
-        });
-
-        // Close the notification when the user clicks on it
-        notification.onclick = function () {
-          notification.close();
-        };
-      } 
-    }
-  };
+  // const triggerNotification = () => {
+  //   if ("Notification" in window) {
+  //     if (Notification.permission !== "denied") {
+  //       // Create a new notification
+  //       var notification = new Notification("Yay!", {
+  //         icon: "/S.png",
+  //         body: "File transfer completed successfully",
+  //       });
+  //       notification.onclick = function () {
+  //         notification.close();
+  //       };
+  //     }
+  //   }
+  // };
 
   const notificationAudio: any = document.getElementById("notification");
   useEffect(() => {
-    
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
     let body: any = document.querySelector("body");
@@ -302,7 +297,7 @@ function App() {
       if (e.data.toString() === "completed") {
         [iterator, total_chunks] = [0, 0];
         console.log("completed on client");
-        triggerNotification();
+        // triggerNotification();
         file = new Blob(fileChunks);
         let t = type.current;
         console.log(t, "ttt");
@@ -352,7 +347,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col  app relative text-textc  h-[100svh] overflow-hidden  ">
+    <div className="flex flex-col  app relative text-textc  h-[100dvh] overflow-hidden  ">
       <div className="text-bg bg-[var(--textgray)]  italic font-semibold toast completed_animation absolute top-3   right-[25%] left-[25%]  flex items-center justify-center  rounded-lg  p-2 py-3 z-[66] text-xs ">
         Transfer Completed ⚡
       </div>
@@ -455,14 +450,13 @@ function App() {
           </span>
           {myname.slice(0, 1).toLocaleUpperCase() + myname.slice(1)}
         </span>
-        <button onClick={()=>{if ("Notification" in window) {
+        {/* <button onClick={()=>{if ("Notification" in window) {
       localStorage.getItem("notification") == null &&
         Notification.requestPermission();
       if (Notification.permission == "denied")
         localStorage.setItem("notification", JSON.stringify(false));
-    }}}>req</button>
+    }}}>req</button> */}
       </div>
-      {/* <Foot /> */}
     </div>
   );
 }
