@@ -191,6 +191,7 @@ function App() {
  
     dataChannel.addEventListener("message", (event) => {
       if (event.data == "next") {
+        i++;
         i <= n && send(files[i]);
       }
     });
