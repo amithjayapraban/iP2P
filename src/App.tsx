@@ -25,20 +25,6 @@ function App() {
       },
     ],
   };
-  // const triggerNotification = () => {
-  //   if ("Notification" in window) {
-  //     if (Notification.permission !== "denied") {
-  //       // Create a new notification
-  //       var notification = new Notification("Yay!", {
-  //         icon: "/S.png",
-  //         body: "File transfer completed successfully",
-  //       });
-  //       notification.onclick = function () {
-  //         notification.close();
-  //       };
-  //     }
-  //   }
-  // };
 
   const notificationAudio: any = document.getElementById("notification");
   useEffect(() => {
@@ -181,15 +167,12 @@ function App() {
     );
   }
 
-  // const dataChannel = peerConnection.current.createDataChannel("mydata");
-  // dataChannel.bufferedAmountLowThreshold = 1024;
-  // dataChannel.addEventListener("open", (event) => {});
-  var file: any;
+  var files: any;
   //Web worker
-  const myWorker = new Worker("/worker.js");
+  // const myWorker = new Worker("/worker.js");
   const fileAdd = (e: any) => {
     e.preventDefault();
-    file = e.target.files;
+    files = e.target.files;
     var prog: any = document.getElementById("progress");
     prog.style.width = `0%`;
 
@@ -199,44 +182,16 @@ function App() {
 
   const Sendmsg = (e: any) => {
     let i = 0;
-    let n = file && file.length - 1;
+    let n = files && files.length - 1;
     e.preventDefault();
-    if (window.Worker) {
-      myWorker.postMessage(file[0]);
-    }
+    send(files[0]);
     var prog1: any = document.querySelector(".progress");
     prog1.classList.remove("w-0");
-    var prog: any = document.getElementById("progress");
-    prog.style.opacity = "1";
-    // document
-    //   .querySelectorAll("#send_cntrl")
-    //   ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
-    // document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
 
-    myWorker.onmessage = (e) => {
-      if (e.data.toString().includes("len")) {
-        dataChannel.send(`len%${Math.ceil(e.data.toString().split("%")[1])}`);
-      }
-      if (e.data.toString() === "completed") {
-        console.log(e.data.toString());
-        completedActions();
-        dataChannel.send(`type:${file[i].name}`);
-        i++;
-        dataChannel.send("completed");
-        notificationAudio.play();
-        //  sendRem();
-      }
-
-      prog.style.width = `${Math.abs(e.data.w)}%`;
-
-      // console.count("chunks");
-
-      dataChannel.send(e.data.chunk);
-    };
+ 
     dataChannel.addEventListener("message", (event) => {
-      console.log("got msg from client", event);
-      if (window.Worker) {
-        i <= n && myWorker.postMessage(file[i]);
+      if (event.data == "next") {
+        i <= n && send(files[i]);
       }
     });
     // File transfer animation
@@ -245,21 +200,58 @@ function App() {
     name.innerHTML = "Transfer Completed ⚡";
   };
 
-  function completedActions() {
-    {
-      setTimeout(() => {
-        var prog: any = document.getElementById("progress");
+  let chunkSize = 64000; // 64 KB
+  let maxPartitionSize = 1024; // 1 MB
+  let offset = useRef(0);
+  let partitionSize = 0;
+  let reader = new FileReader();
+  let file: any = useRef(null);
+  const send = (f: any) => {
+    file.current = f;
+    console.log(f.size, "f size");
+    dataChannel.send(`len%${f.size}`);
+    dataChannel.send(`type:${file.current.name}`);
+    readChunk(file);
+  };
 
-        prog.style.width = "0";
-      }, 3000);
-      document.querySelector(".toast")?.classList.toggle("completed_animation");
-      setTimeout(() => {
-        document
-          .querySelector(".toast")
-          ?.classList.toggle("completed_animation");
-      }, 3000);
-    }
+  function readChunk(file: any) {
+    const chunk = file.current.slice(
+      offset.current,
+      offset.current + chunkSize
+    );
+    reader.readAsArrayBuffer(chunk);
   }
+
+  function onChunkRead(chunk: any) {
+    offset.current += chunk.byteLength;
+    partitionSize += chunk.byteLength;
+    console.log("sending", chunk);
+    var prog: any = document.getElementById("progress");
+    prog.style.opacity = "1";
+    prog.style.width = `${Math.abs(offset.current / file.current.size) * 100}%`;
+    dataChannel.send(chunk);
+    console.log(Math.abs(offset.current / file.current.size) * 100, "offset");
+    if (offset.current >= file.current.size) {
+      dataChannel.send("completed");
+      return;
+    }
+    //   if (partitionSize >= maxPartitionSize) {
+    //     console.log("on parttyion end");
+    //     return;
+    //   }
+  }
+
+  dataChannel.addEventListener("message", (event: any) => {
+    console.log(event.data);
+
+    if (event.data == "send next") {
+      offset.current < file.current.size && readChunk(file);
+    }
+  });
+  reader.addEventListener("load", (e: any) => {
+    onChunkRead(e.target.result);
+    console.log("loaded");
+  });
 
   // peerConnection_client.current.ondatachannel = (e: any) => {
   //   var clientDc: any = e.channel;
@@ -284,12 +276,10 @@ function App() {
         if (e.data.toString().includes("len")) {
           total_chunks = e.data.toString().split("%")[1];
         }
-        if (
-          e.data.toString() !== "completed" &&
-          !e.data.toString().includes("len")
-        ) {
+        if (e.data.toString().includes("type:")) {
           // let k = e.data.toString();
           // prog.style.width = `${Math.abs(k)}%`;
+          console.log(e.data, "type");
           type.current = e.data.toString();
         }
       }
@@ -327,7 +317,7 @@ function App() {
             .querySelector(".toast")
             ?.classList.toggle("completed_animation");
           fileChunks = [""];
-          clientDc.send("msg from client");
+          clientDc.send("next");
           prog.style.width = 0;
         }, 1000);
       }
@@ -337,10 +327,9 @@ function App() {
         e.data.toString() !== `undefined` &&
         !e.data.toString().includes("len")
       ) {
-        // console.log(e.data);
-        iterator++;
-        prog.style.width = `${Math.abs(iterator / total_chunks) * 100}%`;
-
+        iterator += 6400;
+        prog.style.width = `${Math.abs(iterator / total_chunks) * 1000}%`;
+        clientDc.send("send next");
         fileChunks.push(e.data);
       }
     });
@@ -462,3 +451,67 @@ function App() {
 }
 
 export default App;
+
+// const triggerNotification = () => {
+//   if ("Notification" in window) {
+//     if (Notification.permission !== "denied") {
+//       // Create a new notification
+//       var notification = new Notification("Yay!", {
+//         icon: "/S.png",
+//         body: "File transfer completed successfully",
+//       });
+//       notification.onclick = function () {
+//         notification.close();
+//       };
+//     }
+//   }
+// };
+
+// function completedActions() {
+//   {
+//     setTimeout(() => {
+//       var prog: any = document.getElementById("progress");
+
+//       prog.style.width = "0";
+//     }, 3000);
+//     document
+//       .querySelector(".toast")
+//       ?.classList.toggle("completed_animation");
+//     setTimeout(() => {
+//       document
+//         .querySelector(".toast")
+//         ?.classList.toggle("completed_animation");
+//     }, 3000);
+//   }
+// }
+
+
+
+
+
+
+   // document
+    //   .querySelectorAll("#send_cntrl")
+    //   ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
+    // document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
+
+    // myWorker.onmessage = (e) => {
+    //   if (e.data.toString().includes("len")) {
+    //     dataChannel.send(`len%${Math.ceil(e.data.toString().split("%")[1])}`);
+    //   }
+    //   if (e.data.toString() === "completed") {
+    //     console.log(e.data.toString());
+    //     completedActions();
+    //     dataChannel.send(`type:${file[i].name}`);
+    //     i++;
+    //     dataChannel.send("completed");
+    //     notificationAudio.play();
+    //     //  sendRem();
+    //   }
+
+    //   prog.style.width = `${Math.abs(e.data.w)}%`;
+
+    //   // console.count("chunks");
+
+    //   dataChannel.send(e.data.chunk);
+    // };

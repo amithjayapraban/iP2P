@@ -1,5 +1,13 @@
 onmessage = (e) => {
   var file = e.data;
+  let reader = new FileReader();
+  console.log(e.target, "loaded");
+  reader.addEventListener("load", (e) =>{
+    console.log(e.target,'loaded');
+    alert(JSON.stringify(e.target));
+});
+
+
   file.arrayBuffer().then((buffer) => {
     const chunkSize = 64000;
     let total_len = buffer.byteLength;
