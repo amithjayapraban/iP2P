@@ -49,11 +49,10 @@ function App() {
     let mode = body.getAttribute("data-theme");
     const color = mode == "dark" ? "#121212" : "#fafafa";
     themeColor.setAttribute("content", color);
-    window.document.title = "iP2P | Not connected";
+    window.document.title = "iP2P";
   }, []);
 
   var ws: any = useRef();
-  // const peerConnection_client = useRef(new RTCPeerConnection(configuration));
   var peerConnection = useRef(new RTCPeerConnection(configuration));
   function openSignaling() {
     let device = getDeviceType();
@@ -118,16 +117,6 @@ function App() {
   }
 
   const dataChannel = peerConnection.current.createDataChannel("mydata");
-  dataChannel.addEventListener("open", (event) => {
-    window.document.title = "iP2P | Connected ⚡";
-    setConnection(true);
-    console.log("dc open");
-  });
-  dataChannel.addEventListener("close", (event) => {
-    console.log("dc closed");
-    window.document.title = "iP2P | Disconnected";
-    setConnection(false);
-  });
 
   peerConnection.current.onicecandidate = async (e) => {
     // console.log(e, "once");
@@ -144,14 +133,21 @@ function App() {
       );
     }
   };
+
   peerConnection.current.addEventListener("connectionstatechange", (event) => {
     console.log(peerConnection.current.connectionState, "connectionState");
-    peerConnection.current.connectionState === "disconnected"
-      ? (window.document.title = "iP2P | Disconnected")
-      : "";
-    peerConnection.current.connectionState === "connected"
-      ? (window.document.title = "iP2P | Connected ⚡")
-      : "";
+    if (
+      peerConnection.current.connectionState === "disconnected" ||
+      peerConnection.current.connectionState === "failed"
+    ) {
+      setConnection(false);
+      window.document.title = "iP2P | Disconnected";
+    }
+
+    if (peerConnection.current.connectionState === "connected") {
+      setConnection(true);
+      window.document.title = "iP2P | Connected ";
+    }
   });
 
   async function offerPeerConnection(id: string) {
@@ -167,32 +163,28 @@ function App() {
     );
   }
 
-  var files: any;
-  //Web worker
-  // const myWorker = new Worker("/worker.js");
+  var files: any = [];
+  var prog: any = document.getElementById("progress");
   const fileAdd = (e: any) => {
     e.preventDefault();
-    files = e.target.files;
-    var prog: any = document.getElementById("progress");
+    files = [...e.target.files];
     prog.style.width = `0%`;
 
     Sendmsg(e);
   };
-  // var sendQueue: any = [];
 
   const Sendmsg = (e: any) => {
-    let i = 0;
-    let n = files && files.length - 1;
+    // let n = files.current && files.current.length - 1;
     e.preventDefault();
-    send(files[0]);
-    var prog1: any = document.querySelector(".progress");
-    prog1.classList.remove("w-0");
+    send(files.shift());
+    prog.classList.remove("w-0");
 
- 
     dataChannel.addEventListener("message", (event) => {
-      if (event.data == "next") {
-        i++;
-        i <= n && send(files[i]);
+      if (event.data == "next_file") {
+        var prog: any = document.getElementById("progress");
+        prog.style.width = "0";
+        files.length > 0 && send(files.shift());
+        files.length > 0 && console.log(files[0]);
       }
     });
     // File transfer animation
@@ -202,60 +194,50 @@ function App() {
   };
 
   let chunkSize = 64000; // 64 KB
-  let maxPartitionSize = 1024; // 1 MB
   let offset = useRef(0);
   let partitionSize = 0;
   let reader = new FileReader();
   let file: any = useRef(null);
+
   const send = (f: any) => {
+    console.log(f, "file");
     file.current = f;
-    console.log(f.size, "f size");
+    offset.current = 0;
     dataChannel.send(`len%${f.size}`);
     dataChannel.send(`type:${file.current.name}`);
-    readChunk(file);
+    readChunk(file.current);
   };
 
   function readChunk(file: any) {
-    const chunk = file.current.slice(
-      offset.current,
-      offset.current + chunkSize
-    );
+    const chunk = file.slice(offset.current, offset.current + chunkSize);
     reader.readAsArrayBuffer(chunk);
   }
 
   function onChunkRead(chunk: any) {
     offset.current += chunk.byteLength;
     partitionSize += chunk.byteLength;
-    console.log("sending", chunk);
+    // console.log("sending", chunk);
     var prog: any = document.getElementById("progress");
     prog.style.opacity = "1";
     prog.style.width = `${Math.abs(offset.current / file.current.size) * 100}%`;
     dataChannel.send(chunk);
+    console.log(chunk, "chunks");
     console.log(Math.abs(offset.current / file.current.size) * 100, "offset");
     if (offset.current >= file.current.size) {
       dataChannel.send("completed");
       return;
     }
-    //   if (partitionSize >= maxPartitionSize) {
-    //     console.log("on parttyion end");
-    //     return;
-    //   }
   }
 
   dataChannel.addEventListener("message", (event: any) => {
     console.log(event.data);
-
-    if (event.data == "send next") {
-      offset.current < file.current.size && readChunk(file);
+    if (event.data == "send_next_partition") {
+      offset.current < file.current.size && readChunk(file.current);
     }
   });
   reader.addEventListener("load", (e: any) => {
     onChunkRead(e.target.result);
-    console.log("loaded");
   });
-
-  // peerConnection_client.current.ondatachannel = (e: any) => {
-  //   var clientDc: any = e.channel;
 
   var type = useRef("");
   var blobUrl: any;
@@ -270,8 +252,6 @@ function App() {
       var prog1: any = document.querySelector(".progress");
       prog1.classList.remove("w-0");
       var prog: any = document.getElementById("progress");
-
-      // const clientWorker = new Worker("/receiver_worker.js");
 
       if (e.data.toString()) {
         if (e.data.toString().includes("len")) {
@@ -291,7 +271,6 @@ function App() {
         // triggerNotification();
         file = new Blob(fileChunks);
         let t = type.current;
-        console.log(t, "ttt");
         blobUrl = URL.createObjectURL(file);
         var link = document.createElement("a");
         link.href = blobUrl;
@@ -306,7 +285,7 @@ function App() {
         );
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
-        notificationAudio.play();
+        // notificationAudio.play();
         let name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved ⚡";
         document
@@ -314,12 +293,14 @@ function App() {
           ?.classList.toggle("completed_animation");
 
         setTimeout(() => {
+          console.log(fileChunks, "fileChunks");
+          fileChunks = [];
+          clientDc.send("next_file");
           document
             .querySelector(".toast")
             ?.classList.toggle("completed_animation");
-          fileChunks = [""];
-          clientDc.send("next");
-          prog.style.width = 0;
+          prog.classList.add("w-0");
+          prog.style.width = `0%`;
         }, 1000);
       }
       if (
@@ -329,8 +310,9 @@ function App() {
         !e.data.toString().includes("len")
       ) {
         iterator += 6400;
+        console.log(e.data, "chunks");
         prog.style.width = `${Math.abs(iterator / total_chunks) * 1000}%`;
-        clientDc.send("send next");
+        clientDc.send("send_next_partition");
         fileChunks.push(e.data);
       }
     });
@@ -367,11 +349,6 @@ function App() {
         <section className=" h-full  overflow-y-auto self-center w-full md:w-[max-content] md:max-w-[80%]  flex justify-center items-center bg- [rgba(250,250,250,.1)] flex-wrap  transition text-white      ">
           {peers.map((i: any, n) => (
             <button
-              // style={{
-              //   position: "absolute",
-              //   bottom: `${(n + 1) * 10 >= 100 ? 90 : (n + 1) * 10}%`,
-              //   left: `${n + 1 == 1 ? "46" : (n + 1) % 2 == 0 ? "25" : "75"}%`,
-              // }}
               onClick={() => {
                 offerPeerConnection(i);
                 setDestination(i);
@@ -440,12 +417,6 @@ function App() {
           </span>
           {myname.slice(0, 1).toLocaleUpperCase() + myname.slice(1)}
         </span>
-        {/* <button onClick={()=>{if ("Notification" in window) {
-      localStorage.getItem("notification") == null &&
-        Notification.requestPermission();
-      if (Notification.permission == "denied")
-        localStorage.setItem("notification", JSON.stringify(false));
-    }}}>req</button> */}
       </div>
     </div>
   );
@@ -486,33 +457,39 @@ export default App;
 //   }
 // }
 
+// document
+//   .querySelectorAll("#send_cntrl")
+//   ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
+// document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
 
+// myWorker.onmessage = (e) => {
+//   if (e.data.toString().includes("len")) {
+//     dataChannel.send(`len%${Math.ceil(e.data.toString().split("%")[1])}`);
+//   }
+//   if (e.data.toString() === "completed") {
+//     console.log(e.data.toString());
+//     completedActions();
+//     dataChannel.send(`type:${file[i].name}`);
+//     i++;
+//     dataChannel.send("completed");
+//     notificationAudio.play();
+//     //  sendRem();
+//   }
 
+//   prog.style.width = `${Math.abs(e.data.w)}%`;
 
+//   // console.count("chunks");
 
+//   dataChannel.send(e.data.chunk);
+// };
 
-   // document
-    //   .querySelectorAll("#send_cntrl")
-    //   ?.forEach((e: any) => e.setAttribute("disabled", "disabled"));
-    // document.querySelectorAll(".send_btn")[0].innerHTML = "Sending";
-
-    // myWorker.onmessage = (e) => {
-    //   if (e.data.toString().includes("len")) {
-    //     dataChannel.send(`len%${Math.ceil(e.data.toString().split("%")[1])}`);
-    //   }
-    //   if (e.data.toString() === "completed") {
-    //     console.log(e.data.toString());
-    //     completedActions();
-    //     dataChannel.send(`type:${file[i].name}`);
-    //     i++;
-    //     dataChannel.send("completed");
-    //     notificationAudio.play();
-    //     //  sendRem();
-    //   }
-
-    //   prog.style.width = `${Math.abs(e.data.w)}%`;
-
-    //   // console.count("chunks");
-
-    //   dataChannel.send(e.data.chunk);
-    // };
+// dataChannel.addEventListener("open", (event) => {
+//   window.document.title = "iP2P | Connected ⚡";
+//   setConnection(true);
+//   console.log("dc open");
+// });
+// dataChannel.addEventListener("close", (event) => {
+//   console.log("dc closed");
+//   window.document.title = "iP2P | Disconnected";
+//   setConnection(false);
+// });
