@@ -42,6 +42,7 @@ export default function Info() {
             <a
               href="https://amith.vercel.app"
               target="_blank"
+              rel="noopener"
               className="   cursor-pointer w-[100%]  text-center justify-self-end self-center    "
             >
               @amithjayapraban

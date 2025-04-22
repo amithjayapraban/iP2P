@@ -6,7 +6,12 @@ import Logo from "./components/Logo";
 import { getDeviceType } from "./utils/getDeviceType";
 import Progress from "./components/Progress";
 import { Analytics } from "@vercel/analytics/react";
-// import ToggleTheme from "./components/ToggleTheme";
+import { WebSocketMessage, FileWithMetadata } from "./types/app";
+import { formatPeerName } from "./utils/formatPeerName";
+
+const CHUNK_SIZE = 64000; // 64 KB
+const BUFFER_SIZE = 1024 * 1024 * 4; // 4 MB
+const MESSAGE_COMPLETED = "completed";
 
 function App() {
   const [myname, setmyName] = useState("");
@@ -15,14 +20,14 @@ function App() {
   const [connection, setConnection] = useState(false);
   const [recieverDeviceType, setRecieverDeviceType] = useState("");
   const production = true;
-  var name = useRef("");
+  const name = useRef("");
   const baseURL = production
     ? `https://${window.location.hostname}`
     : "http://192.168.18.27:3003";
   const wsURL = production
     ? "wss://ip2p-amithjayapraban.koyeb.app"
     : "ws://localhost:8080";
-  var configuration = {
+  const configuration = {
     iceServers: [
       {
         urls: "stun:stun.l.google.com:19302",
@@ -33,11 +38,11 @@ function App() {
   useEffect(() => {
     name.current = generateUsername("", 0, 8);
     setmyName(name.current);
-    let body: any = document.querySelector("body");
+    const body: any = document.querySelector("body");
 
     openSignaling();
     // if (localStorage.getItem("theme")) {
-    //   let theme = localStorage.getItem("theme");
+    //   const theme = localStorage.getItem("theme");
     //   body.setAttribute("data-theme", theme);
     // } else if (window.matchMedia) {
     //   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -49,29 +54,35 @@ function App() {
     //   }
     // }
     body.setAttribute("data-theme", "dark");
-    const themeColor: any = document.querySelector('meta[name="theme-color"]');
-    let mode = body.getAttribute("data-theme");
+    // const themeColor: any = document.querySelector('meta[name="theme-color"]');
+    const mode = body.getAttribute("data-theme");
     const color = mode == "dark" ? "#121212" : "#fafafa";
-    themeColor.setAttribute("content", color);
+    // themeColor.setAttribute("content", color);
     window.document.title = "iP2P";
   }, []);
 
-  var ws: any = useRef();
-  var peerConnection = useRef(new RTCPeerConnection(configuration));
+  useEffect(() => {
+    return () => {
+      ws.current?.close();
+    };
+  }, []);
+
+  const ws = useRef<WebSocket | null>(null);
+  const peerConnection = useRef(new RTCPeerConnection(configuration));
   function openSignaling() {
-    let device = getDeviceType();
+    const device = getDeviceType();
     const url = `${wsURL}/${name.current}/${device}`;
     ws.current = new WebSocket(url);
     ws.current.onopen = () => console.log("WebSocket Open");
     ws.current.onerror = () => console.error("WebSocket Error");
     ws.current.onclose = () => console.error("WebSocket Disconnected");
-    ws.current.onmessage = (e: any) => {
+    ws.current.onmessage = (e: MessageEvent<string>) => {
       if (typeof e.data != "string") return;
-      const message = JSON.parse(e.data);
+      const message: WebSocketMessage = JSON.parse(e.data);
 
       const { id, type } = message;
 
-      if (type === "peers") {
+      if (type === "peers" && message.keys) {
         console.log(message);
         setPeers(
           message.keys.filter((key: string) => {
@@ -85,36 +96,40 @@ function App() {
           {
             peerConnection.current.setRemoteDescription({
               sdp: message.description,
-              type: message.type,
+              type: message.type as RTCSdpType,
             });
-            const a = async () => {
+            const sendAnswer = async () => {
               const answer = await peerConnection.current.createAnswer();
               await peerConnection.current.setLocalDescription(answer);
               setDestination(id);
-              console.log(id, "id");
-              ws.current.send(
-                JSON.stringify({
-                  id,
-                  type: "answer",
-                  description: answer.sdp,
-                })
-              );
+              ws.current &&
+                ws.current.send(
+                  JSON.stringify({
+                    id,
+                    type: "answer",
+                    description: answer.sdp,
+                  })
+                );
             };
-            a();
+            sendAnswer();
           }
           break;
         case "answer":
           peerConnection.current.setRemoteDescription({
             sdp: message.description,
-            type: message.type,
+            type: message.type as RTCSdpType,
           });
           break;
 
         case "candidate":
-          peerConnection.current.addIceCandidate({
-            candidate: message.candidate,
-            sdpMid: message.mid,
-          });
+          peerConnection.current
+            .addIceCandidate({
+              candidate: message.candidate,
+              sdpMid: message.mid,
+            })
+            .catch((error) => {
+              console.error("Failed to add ICE candidate:", error);
+            });
           break;
       }
     };
@@ -128,14 +143,15 @@ function App() {
 
     if (e.candidate) {
       const { candidate, sdpMid } = e.candidate;
-      ws.current.send(
-        JSON.stringify({
-          id: destination,
-          type: "candidate",
-          candidate,
-          mid: sdpMid,
-        })
-      );
+      ws.current &&
+        ws.current.send(
+          JSON.stringify({
+            id: destination,
+            type: "candidate",
+            candidate,
+            mid: sdpMid,
+          })
+        );
     }
   };
 
@@ -160,20 +176,21 @@ function App() {
     const offer = await peerConnection.current.createOffer();
     await peerConnection.current.setLocalDescription(offer);
 
-    ws.current.send(
-      JSON.stringify({
-        id: `${id}`,
-        type: "offer",
-        description: offer.sdp,
-      })
-    );
+    ws.current &&
+      ws.current.send(
+        JSON.stringify({
+          id: `${id}`,
+          type: "offer",
+          description: offer.sdp,
+        })
+      );
   }
 
-  let files: any = [];
-  var prog: any = document.getElementById("progress");
-  const fileAdd = (e: any) => {
+  let files: FileWithMetadata[] = [];
+  const prog = document.getElementById("progress") as HTMLSpanElement;
+  const fileAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    files = [...e.target.files];
+    files = e.target.files ? [...e.target.files] : [];
     prog.style.width = `0%`;
 
     Sendmsg(e);
@@ -181,27 +198,31 @@ function App() {
 
   const Sendmsg = (e: any) => {
     e.preventDefault();
-    send(files.shift());
+    const fileToSend = files.shift();
+    if (fileToSend) {
+      send(fileToSend);
+    }
     prog.classList.remove("w-0");
 
-    dataChannel.addEventListener("message", (event) => {
-      if (event.data == "next_file") {
-        var prog: any = document.getElementById("progress");
-        prog.style.width = "0";
-        files.length > 0 && send(files.shift());
-        files.length > 0 && console.log(files[0]);
+    dataChannel.addEventListener("message", (event: MessageEvent) => {
+      const nextFile = files.shift();
+      if (nextFile) {
+        send(nextFile);
       }
+      const prog = document.getElementById("progress") as HTMLSpanElement;
+      prog.style.width = "0";
+      // files.length > 0 && send(files.shift());
+      // files.length > 0 && console.log(files[0]);
     });
   };
 
-  let chunkSize = 64000; // 64 KB
   console.log(recieverDeviceType);
 
-  let offset = useRef(0);
+  const offset = useRef(0);
 
-  let file: any = useRef(null);
+  const file = useRef<FileWithMetadata | null>(null);
 
-  const send = (f: any) => {
+  const send = (f: FileWithMetadata) => {
     console.log(f, "file");
     file.current = f;
     offset.current = 0;
@@ -210,19 +231,19 @@ function App() {
     emit(file.current);
   };
 
-  async function emit(file: any) {
-    let bufferSize = ["iPhone", "Android"].includes(recieverDeviceType)
-      ? 1024 * 1024 * 4
-      : 1024 * 1024 * 4;
-    var prog: any = document.getElementById("progress");
-    const percentage: any = document.getElementById("percentage");
+  async function emit(file: FileWithMetadata) {
+    const bufferSize = ["iPhone", "Android"].includes(recieverDeviceType)
+      ? BUFFER_SIZE
+      : BUFFER_SIZE;
+    const prog = document.getElementById("progress") as HTMLSpanElement;
+    const percentage = document.getElementById("percentage") as HTMLElement;
     prog.style.opacity = "1";
     while (offset.current < file.size) {
       while (dataChannel.bufferedAmount > bufferSize) {
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
-      const chunk = file.slice(offset.current, offset.current + chunkSize);
+      const chunk = file.slice(offset.current, offset.current + CHUNK_SIZE);
       const reader = new FileReader();
       const arrayBuffer: ArrayBuffer = await new Promise((resolve) => {
         reader.onload = function (event) {
@@ -237,11 +258,11 @@ function App() {
         Math.abs(offset.current / file.size) * 100
       ).toFixed(2)}%`;
       console.log(prog.style.width, "%%%");
-      offset.current += chunkSize;
+      offset.current += CHUNK_SIZE;
     }
-    dataChannel.send("completed");
+    dataChannel.send(MESSAGE_COMPLETED);
     percentage.textContent = `100%`;
-    let name: any = document.querySelector(".toast");
+    const name = document.querySelector(".toast") as HTMLDivElement;
     name.innerHTML = "File Sent";
     document.querySelector(".toast")?.classList.toggle("completed_animation");
     setTimeout(() => {
@@ -253,17 +274,19 @@ function App() {
       document.querySelector(".toast")?.classList.toggle("completed_animation");
     }, 2000);
   }
-  var type = useRef("");
+  const type = useRef("");
   peerConnection.current.ondatachannel = (e: any) => {
-    let fileChunks: any = [];
+    const fileChunks: any = [];
     let blobUrl: any;
     let file;
     let total_chunks: number,
       iterator: number = 0;
-    let clientDc: any = e.channel;
+    const clientDc: any = e.channel;
 
     const messageHandler = (e: any) => {
-      const percentage: any = document.getElementById("percentage");
+      const percentage: any = document.getElementById(
+        "percentage"
+      ) as HTMLElement;
       const prog: any = document.getElementById("progress");
       prog.classList.remove("w-0");
       if (e.data.toString()) {
@@ -276,14 +299,14 @@ function App() {
         }
       }
 
-      if (e.data.toString() === "completed") {
+      if (e.data.toString() === MESSAGE_COMPLETED) {
         percentage.textContent = `100%`;
         [iterator, total_chunks] = [0, 0];
         console.log("completed on client");
         file = new Blob(fileChunks);
-        let t = type.current;
+        const t = type.current;
         blobUrl = URL.createObjectURL(file);
-        let link = document.createElement("a");
+        const link = document.createElement("a");
         link.href = blobUrl;
         link.download = t.substring(5);
         document.body.appendChild(link);
@@ -294,7 +317,7 @@ function App() {
             view: window,
           })
         );
-        let name: any = document.querySelector(".toast");
+        const name: any = document.querySelector(".toast");
         name.innerHTML = "File recieved";
         document
           .querySelector(".toast")
@@ -319,12 +342,12 @@ function App() {
         }, 2000);
       }
       if (
-        e.data.toString() !== "completed" &&
+        e.data.toString() !== MESSAGE_COMPLETED &&
         !e.data.toString().includes("type") &&
         e.data.toString() !== `undefined` &&
         !e.data.toString().includes("len")
       ) {
-        iterator += 64000;
+        iterator += CHUNK_SIZE;
         console.log(e.data, "chunks");
         prog.style.width = `${Math.abs(iterator / total_chunks) * 100}%`;
 
@@ -338,7 +361,11 @@ function App() {
 
     clientDc.addEventListener("message", messageHandler);
   };
-
+  const handlePeerClick = (peer: string) => {
+    setRecieverDeviceType(peer.split("%")[1]);
+    offerPeerConnection(peer);
+    setDestination(peer);
+  };
   return (
     <div className="flex flex-col  shadow-sm  app relative text-textc  h-[100dvh] ">
       <Analytics />
@@ -349,7 +376,6 @@ function App() {
       <section className="flex items-center p-6 justify-between w-full ">
         <Logo baseURL={baseURL} connection={connection} />
         <div className="flex items-center md:gap-8 gap-6">
-          {/* <ToggleTheme /> */}
           <Info />
         </div>
       </section>
@@ -361,36 +387,25 @@ function App() {
 
       {!connection ? (
         <section className=" h-full overflow-y-auto self-center w-full md:w-[max-content] md:max-w-[80%]  flex justify-center items-center bg- [rgba(250,250,250,.1)] flex-wrap  transition text-white      ">
-          {peers.map((i: any, n) => (
-            <button
-              key={i}
-              onClick={() => {
-                setRecieverDeviceType(i.split("%")[1]);
-                offerPeerConnection(i);
-                setDestination(i);
-              }}
-              className={`bg- [var(--gray)] px-1 m-4 text-textc w-20 h-20  md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
-            >
-              <img
-                height={128}
-                width={128}
-                src={`/${i.split("%")[1]}.svg`}
-                alt={`${i.split("%")[1]}`}
-              />
-              {i.split("%").map((ele: string, n: any) => (
-                <p
-                  key={ele}
-                  className={`${
-                    n == 1 ? `text-gray-500 text-[.6rem]` : `text-textc`
-                  }`}
-                >
-                  {n == 0
-                    ? ele.slice(0, 1).toLocaleUpperCase() + ele.slice(1)
-                    : ele}
-                </p>
-              ))}
-            </button>
-          ))}
+          {peers.map((peer: any, n) => {
+            const { name, deviceType } = formatPeerName(peer);
+            return (
+              <button
+                key={peer}
+                onClick={() => handlePeerClick(peer)}
+                className={`bg- [var(--gray)] px-1 m-4 text-textc w-20 h-20  md:w-24 md:h-24 rounded-full text-xs  text-b py-1`}
+              >
+                <img
+                  height={128}
+                  width={128}
+                  src={`/${peer.split("%")[1]}.svg`}
+                  alt={`${peer.split("%")[1]}`}
+                />
+                <p className="text-textc">{name}</p>
+                <p className="text-gray-500 text-[.6rem]">{deviceType}</p>
+              </button>
+            );
+          })}
         </section>
       ) : (
         <section className=" h-full relative self-center w-full md:w-1/2   transition-[1] flex items-center justify-center  flex-col  text-xs text-white  gap-1  ">
@@ -413,18 +428,16 @@ function App() {
             />
           </label>
           <span className="flex justify-center flex-col items-center">
-            {destination.split("%").map((ele: string, n: any) => (
-              <p
-                key={ele}
-                className={`${
-                  n == 1 ? `text-gray-400 text-[.6rem]` : `text-textc`
-                }`}
-              >
-                {n == 0
-                  ? ele.slice(0, 1).toLocaleUpperCase() + ele.slice(1)
-                  : ele}
-              </p>
-            ))}
+            {(() => {
+              const { name, deviceType } = formatPeerName(destination);
+              return (
+                <>
+                  <p className="text-textc">{name}</p>
+                  <p className="text-gray-500 text-[.6rem]">{deviceType}</p>
+                </>
+              );
+            })()}
+            
           </span>
         </section>
       )}
