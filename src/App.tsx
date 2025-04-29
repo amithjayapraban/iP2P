@@ -28,7 +28,7 @@ function App() {
     ? `https://${window.location.hostname}`
     : "http://192.168.18.27:3003";
   const wsURL = production
-    ? "wss://ip2p-amithjayapraban.koyeb.app"
+    ? "wss://fyla.koyeb.app"
     : "ws://localhost:8080";
   const getIceServerConfig = () => ({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -151,13 +151,13 @@ function App() {
       peerConnection.current.connectionState === "failed"
     ) {
       setPeerConnected(false);
-      window.document.title = "iP2P";
+      window.document.title = "fyla";
       console.error("WebRTC", peerConnection.current.connectionState);
     }
 
     if (peerConnection.current.connectionState === "connected") {
       setPeerConnected(true);
-      window.document.title = "iP2P ⚡";
+      window.document.title = "fyla ⚡";
       console.log("WebRTC", peerConnection.current.connectionState);
     }
   });

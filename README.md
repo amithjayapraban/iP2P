@@ -2,16 +2,16 @@
 <br />
 <div align="center">
   <a href="https://github.com/github_username/repo_name">
-    <img src="/public/ip2p_512.png" alt="Logo" width="80" height="80">
+    <img src="/public/fyla_512.png" alt="Logo" width="80" height="80">
   </a>
 
-<h3 align="center">iP2P</h3>
+<h3 align="center">fyla</h3>
 
   <p align="center">
-    P2P File Sharing
+    P2P file-sharing
     </p>
     <br />
-    <a href="https://ip2p.vercel.app"  target="_blank">View Demo</a>
+    <a href="https://fyla.vercel.app"  target="_blank">View Demo</a>
 
   </p>
 </div>
@@ -20,9 +20,10 @@
 
 ## About The Project
 
-iP2P is a peer-to-peer (P2P) file-sharing web application designed to make file transfers seamless and efficient. By leveraging WebRTC for direct peer-to-peer communication and WebSockets for signaling, iP2P eliminates the need for centralized servers during file transfers, ensuring privacy and speed.
+fyla is a peer-to-peer (P2P) file-sharing web application designed to make file transfers seamless and efficient. By leveraging WebRTC for direct peer-to-peer communication and WebSockets for signaling, fyla eliminates the need for centralized servers during file transfers, ensuring privacy and speed.
 
 ### Key Features
+
 - **Real-Time File Sharing**: Share files instantly between peers without any intermediary servers.
 - **Cross-Platform Compatibility**: Works on modern web browsers, ensuring accessibility across devices.
 - **Secure Communication**: Uses WebRTC's encryption to ensure secure data transmission.

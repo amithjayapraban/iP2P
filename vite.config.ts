@@ -12,21 +12,21 @@ export default defineConfig({
         enabled: true,
       },
       base: "/",
-      includeAssets: ["ip2p.png"],
+      includeAssets: ["fyla.png"],
       manifest: {
-        name: "P2P",
-        short_name: "P2P",
+        name: "fyla",
+        short_name: "fyla",
 
-        description: "P2P Sharing",
+        description: "PWA for P2P file-sharing",
         theme_color: "#121212",
         icons: [
           {
-            src: "ip2p_512.png",
+            src: "fyla_512.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "ip2p_512.png",
+            src: "fyla_512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable",

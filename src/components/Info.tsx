@@ -1,4 +1,4 @@
-import { AtSign, Github, } from "lucide-react";
+import { AtSign, Github } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -43,7 +43,7 @@ export default function Info() {
           <li className="italic flex bg-[var(--gray)] px-2 rounded py-2 w-[min-content] gap-2">
             <a
               title="Github Repository"
-              href="https://github.com/amithjayapraban/ip2p"
+              href="https://github.com/amithjayapraban/fyla"
               target="_blank"
               rel="noopener"
               className="cursor-pointer gap-1  text-center flex items-center justify-self-end self-center"
