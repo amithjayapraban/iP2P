@@ -1,4 +1,8 @@
-export default function Logo({ baseURL, connection }: any) {
+interface LogoProps {
+  baseURL: string;
+  peerConnected: boolean;
+}
+export default function Logo({ baseURL, peerConnected }: LogoProps) {
   return (
     <svg
       onClick={() => {
@@ -11,7 +15,7 @@ export default function Logo({ baseURL, connection }: any) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {connection ? (
+      {peerConnected ? (
         <rect width="512" height="476.07" rx="150" fill="#3ef994" />
       ) : (
         <rect width="512" height="476.07" rx="150" fill="#4F4F4F" />
@@ -25,7 +29,7 @@ export default function Logo({ baseURL, connection }: any) {
         rx="150"
         fill="#5F5F5F"
       />
-      {connection ? (
+      {peerConnected ? (
         <rect y="35.9303" width="512" height="476.07" rx="150" fill="#3ef994" />
       ) : (
         <rect y="35.9303" width="512" height="476.07" rx="150" fill="#4F4F4F" />
@@ -40,14 +44,4 @@ export default function Logo({ baseURL, connection }: any) {
       />
     </svg>
   );
-}
-
-{
-  /* <svg
-  width="512"
-  height="512"
-  viewBox="0 0 512 512"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
-></svg>; */
 }

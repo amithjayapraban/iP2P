@@ -1,8 +1,3 @@
-
-
-
-
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -21,48 +16,34 @@
   </p>
 </div>
 
-
-
-
-
-
-
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
-A P2P file sharing web app. <br/> Uses WebSockets for signalling. 
+
+A P2P file sharing web app. <br/> Uses WebSockets for signalling.
 
 ### Screenshots
 
-
 <div align="left">
 
-  <img src="public/scrn3.png"  width="250" />
+  <img src="public/screenshot.png"  width="250" />
  
 </div>
 
-
-
-
 ### Built With
-* React
-* Tailwind
-* WebRTC
-* WebSockets
 
-
-
-
-
+- React
+- Tailwind
+- WebRTC
+- WebSockets
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
-
-
 
 ### Prerequisites
 
-
-* npm
+- npm
   ```sh
   npm install npm@latest -g
   ```
@@ -78,15 +59,8 @@ A P2P file sharing web app. <br/> Uses WebSockets for signalling.
    npm install
    ```
 
-
-
-
-
-
-
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -100,35 +74,15 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
-
-
-
-<!-- LICENSE 
+<!-- LICENSE
 ## License
 
-Distributed under the MIT License. 
+Distributed under the MIT License.
 -->
 
-
-
-
-
-
-
-
-
 <!-- ACKNOWLEDGMENTS -->
+
 ## Acknowledgments
 
-
-
-* [WebRTC](https://webrtc.org)
-* [javascript.plainenglish.io](https://javascript.plainenglish.io/build-a-p2p-image-sharing-app-with-webrtc-and-react-fe6b3d1976d5)
-
-
-
-
-
-
-
+- [WebRTC](https://webrtc.org)
+- [javascript.plainenglish.io](https://javascript.plainenglish.io/build-a-p2p-image-sharing-app-with-webrtc-and-react-fe6b3d1976d5)

@@ -1,4 +1,4 @@
-export default function Progress() {
+export default function ProgressInPercentage() {
   return (
     <small
       id="percentage"
