@@ -11,7 +11,7 @@
     P2P file-sharing
     </p>
     <br />
-    <a href="https://fylo.vercel.app"  target="_blank">View Demo</a> &nbsp;
+    <a href="https://fyla.vercel.app"  target="_blank">View Demo</a> &nbsp;
    <a href="https://github.com/amithjayapraban/fyla_backend"  target="_blank">Backend Repository</a>
 
   </p>
