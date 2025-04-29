@@ -151,13 +151,11 @@ function App() {
       peerConnection.current.connectionState === "failed"
     ) {
       setPeerConnected(false);
-      window.document.title = "fyla";
       console.error("WebRTC", peerConnection.current.connectionState);
     }
 
     if (peerConnection.current.connectionState === "connected") {
       setPeerConnected(true);
-      window.document.title = "fyla ⚡";
       console.log("WebRTC", peerConnection.current.connectionState);
     }
   });
