@@ -20,7 +20,15 @@
 
 ## About The Project
 
-A P2P file sharing web app. <br/> Uses WebSockets for signalling.
+iP2P is a peer-to-peer (P2P) file-sharing web application designed to make file transfers seamless and efficient. By leveraging WebRTC for direct peer-to-peer communication and WebSockets for signaling, iP2P eliminates the need for centralized servers during file transfers, ensuring privacy and speed.
+
+### Key Features
+- **Real-Time File Sharing**: Share files instantly between peers without any intermediary servers.
+- **Cross-Platform Compatibility**: Works on modern web browsers, ensuring accessibility across devices.
+- **Secure Communication**: Uses WebRTC's encryption to ensure secure data transmission.
+- **Lightweight and Fast**: Built with React and Tailwind for a responsive and user-friendly interface.
+
+This project is ideal for anyone looking to explore the potential of P2P technologies or seeking a simple solution for direct file sharing.
 
 ### Screenshots
 
