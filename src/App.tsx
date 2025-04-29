@@ -43,7 +43,6 @@ function App() {
     // const mode = body.getAttribute("data-theme");
     // const color = mode == "dark" ? "#121212" : "#fafafa";
     // themeColor.setAttribute("content", color);
-    window.document.title = "iP2P";
     openSignaling();
   };
 
