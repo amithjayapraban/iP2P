@@ -1,3 +1,4 @@
+import { AtSign, Github, } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -24,28 +25,41 @@ export default function Info() {
         </svg>
       </PopoverTrigger>
       <PopoverContent className=" bg-bg border border-[var(--gray)]  p-4  rounded-xl md:min-w-[30vw]  min-w-[70vw] break-words md:max-w-[40vw] max-w-[80vw] md:right-1 right-1 md:top-1 top-1  absolute z-[99]">
-        <ul className="pl-1 text-xs  flex flex-col gap-2">
-          <li className=" border-b border-[var(--gray)] ">
+        <ul className="pl-1 text-xs  flex flex-col gap-1">
+          <li className=" border-b border-[var(--gray)] pb-1 ">
             {" "}
             🔍 <br />{" "}
-            <p className="">Make sure the devices are in the same network.</p>
+            <p>Ensure that both devices are connected to the same network.</p>
           </li>
-          <li className=" border-b border-[var(--gray)] ">
+          <li className=" border-b border-[var(--gray)] pb-1 ">
             {" "}
-            📂 <br />{" "}
+            🖥️
+            <br />{" "}
             <p className="">
-              Select the other device and then choose the files to send.
+              Select the target device and then choose the files to send.
             </p>
           </li>
-          <li className="italic text-[var(--textgray)] text-[.7rem]">
-            &nbsp;Found any bugs? <br /> &nbsp;Reach out{" "}
+
+          <li className="italic flex bg-[var(--gray)] px-2 rounded py-2 w-[min-content] gap-2">
+            <a
+              title="Github Repository"
+              href="https://github.com/amithjayapraban/ip2p"
+              target="_blank"
+              rel="noopener"
+              className="cursor-pointer gap-1  text-center flex items-center justify-self-end self-center"
+            >
+              <Github size="12px" /> Github
+            </a>
+            <span className="w-[.5px] h-auto bg-white"></span>
             <a
               href="https://amith.vercel.app"
               target="_blank"
+              title="Personal Website"
               rel="noopener"
-              className="   cursor-pointer w-[100%]  text-center justify-self-end self-center    "
+              className=" flex gap-1 items-center cursor-pointer justify-self-end self-center    "
             >
-              @amithjayapraban
+              <AtSign size="12px" />
+              amithjayapraban
             </a>
           </li>
         </ul>
