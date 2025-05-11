@@ -27,9 +27,7 @@ function App() {
   const baseURL = production
     ? `https://${window.location.hostname}`
     : "http://192.168.18.27:3003";
-  const wsURL = production
-    ? "wss://fyla.koyeb.app"
-    : "ws://localhost:8080";
+  const wsURL = production ? "wss://fyla.koyeb.app" : "ws://localhost:8080";
   const getIceServerConfig = () => ({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   });
@@ -173,13 +171,19 @@ function App() {
     );
   }
 
-  let files: FileWithMetadata[] = [];
+  const [files, setFiles] = useState<FileWithMetadata[]>([]);
+  const [fileIndex, setFileIndex] = useState(0);
+  const currentFileIndex = useRef(0);
+  // const filesRef = useRef<FileWithMetadata[]>(files);
 
-  const addFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    files = e.target.files ? [...e.target.files] : [];
-    sendFiles();
-  };
+  useEffect(() => {
+    currentFileIndex.current = 0;
+    setFileIndex(0);
+  }, [files]);
+
+  useEffect(() => {
+    currentFileIndex.current = fileIndex; // Keep the ref updated with the latest state
+  }, [fileIndex]);
 
   const sendFiles = () => {
     const progressBar = document.getElementById(
@@ -187,18 +191,25 @@ function App() {
     ) as HTMLSpanElement;
     progressBar.style.width = `0%`;
     progressBar.classList.remove("w-0");
-    const fileToSend = files.shift();
-    if (fileToSend) {
-      sendFile(fileToSend);
-    }
+    sendFile(files[currentFileIndex.current]);
+
+    // if (filesRef.current.length > 0) {
+    //   let fileToSend = filesRef.current[0];
+    //   setFiles((prevFiles) => prevFiles.slice(1));
+    //   sendFile(fileToSend);
+    // }
 
     dataChannel.addEventListener("message", (event: MessageEvent) => {
-      const nextFile = files.shift();
-      if (nextFile) {
-        sendFile(nextFile);
+      if (currentFileIndex.current < files.length) {
+        console.log(currentFileIndex.current, files.length, "index len");
+        sendFile(files[currentFileIndex.current]);
+      } else {
+        setTimeout(() => showToast("File transfer was successful"), 500);
+        setTimeout(() => setFiles([]), 3000);
       }
       const prog = document.getElementById("progress-bar") as HTMLSpanElement;
       prog.style.width = "0";
+
       // files.length > 0 && send(files.shift());
       // files.length > 0 && console.log(files[0]);
     });
@@ -244,6 +255,7 @@ function App() {
       updateProgressBar(progressBar, progressPercentage, file.size);
       offset.current += CHUNK_SIZE;
     }
+    setFileIndex((prevIndex) => prevIndex + 1);
     finalizeFileTransfer(progressBar, progressPercentage);
   }
 
@@ -254,7 +266,7 @@ function App() {
   ) => {
     progressBar.style.width = `${(offset.current / fileSize) * 100}%`;
     let percent = Math.min((offset.current / fileSize) * 100, 100);
-    progressPercentage.textContent = `${percent.toFixed(1)}%`;
+    // progressPercentage.textContent = `${percent.toFixed(1)}%`;
   };
 
   const finalizeFileTransfer = (
@@ -262,9 +274,8 @@ function App() {
     progressPercentage: HTMLElement
   ) => {
     dataChannel.send(MESSAGE_COMPLETED);
-    progressPercentage.textContent = `100%`;
+    // progressPercentage.textContent = `100%`;
     offset.current = 0;
-    showToast("File Sent");
     resetProgressBar(progressBar, progressPercentage);
   };
 
@@ -280,7 +291,7 @@ function App() {
     progressPercentage: HTMLElement
   ) => {
     setTimeout(() => {
-      progressPercentage.textContent = ``;
+      // progressPercentage.textContent = ``;
       progressBar.classList.add("w-0");
       progressBar.style.width = `0%`;
     }, 1000);
@@ -315,7 +326,6 @@ function App() {
 
       if (e.data.toString() === MESSAGE_COMPLETED) {
         [offset.current, total_chunks] = [0, 0];
-        console.log("File Received");
         file = new Blob(fileChunks);
         blobUrl = URL.createObjectURL(file);
         const link = document.createElement("a");
@@ -329,7 +339,7 @@ function App() {
             view: window,
           })
         );
-        showToast("File Received");
+        showToast(" File transfer was successful");
 
         setTimeout(() => {
           blobUrl && URL.revokeObjectURL(blobUrl);
@@ -370,7 +380,10 @@ function App() {
 
       <section className="flex items-center p-6 justify-between w-full ">
         <Logo baseURL={baseURL} peerConnected={peerConnected} />
-        <div className="flex items-center md:gap-8 gap-6">
+        <div className="flex items-center md:gap-4 gap-4">
+          {peerConnected && (
+            <span className="w-2 h-2 bg-brandgreen rounded-full"></span>
+          )}
           <Info />
         </div>
       </section>
@@ -380,8 +393,30 @@ function App() {
       {!peerConnected ? (
         <PeerList peers={peers} handlePeerClick={handlePeerClick} />
       ) : (
-        <FileTransferSection destination={destination} addFiles={addFiles} />
+        <FileTransferSection
+          fileIndex={fileIndex}
+          destination={destination}
+          files={files}
+          sendFiles={sendFiles}
+          setFiles={setFiles}
+        />
       )}
+      {/* <PeerList
+        peers={[
+          "testing%iPhone",
+          "testing2%Mac",
+          "testing%iPhone",
+          "testing2%Mac",
+          "testing2%iPad",
+        ]}
+        handlePeerClick={handlePeerClick}
+      /> */}
+      {/* <FileTransferSection
+        destination={"Amith%Mac"}
+        files={files}
+        sendFiles={sendFiles}
+        setFiles={setFiles}
+      /> */}
       <Footer myName={myName} />
     </div>
   );

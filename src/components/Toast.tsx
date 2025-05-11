@@ -1,9 +1,7 @@
-import React from 'react'
-
 export const Toast = () => {
   return (
-    <div className="text-white  bg-bg border border-[var(--gray)]   toast completed_animation absolute top-6   right-[25%] left-[25%]  flex items-center justify-center   rounded-[10px]    p-2 z-[66] text-xs ">
-      File Sent
+    <div className="text-white bg-brandgreen border border-gray   toast  completed_animation absolute top-6   left-1/2 -translate-x-1/2   flex items-center justify-center   rounded-3xl   p-2 px-4 w-max  text-sm ">
+      File transfer was successful
     </div>
   );
-}
+};

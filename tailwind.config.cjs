@@ -19,12 +19,14 @@ module.exports = {
     extend: {
       boxShadow: {
         "3xl": "0 0px 4000px 50px rgba(62, 249, 148 ,.65)",
-        sm: "0px 0px 0px 2px rgba(62, 249, 148 ,.65)",
+        // sm: "0px 0px 0px 2px rgba(62, 249, 148 ,.65)",
       },
       colors: {
-        g: "#3EF994",
-        textc: "var(--textc)",
+        brandgreen: "var(--brandgreen)",
+        textcolor: "var(--textcolor)",
         bg: "var(--bg)",
+        gray: "var(--gray)",
+        fillgray:"var(--fillgray)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -59,20 +61,23 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-      
+
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+        overlayShow: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        contentShow: {
+          from: {
+            opacity: "0",
+            transform: "scale(.5)",
+          },
+          to: { opacity: "1", transform: " scale(1)" },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        overlayShow: "overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        contentShow: "contentShow 350ms cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },
