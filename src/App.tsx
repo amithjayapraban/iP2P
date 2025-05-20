@@ -18,7 +18,8 @@ const MESSAGE_COMPLETED = "completed";
 
 function App() {
   const [myName, setMyName] = useState("");
-  const [destination, setDestination] = useState("");
+  // const [destination, setDestination] = useState("");
+  const destination = useRef("");
   const [peers, setPeers] = useState<string[]>([]);
   const [peerConnected, setPeerConnected] = useState(false);
   const [recieverDeviceType, setRecieverDeviceType] = useState("");
@@ -53,12 +54,11 @@ function App() {
       peerConnection.current = new RTCPeerConnection(getIceServerConfig());
 
       peerConnection.current.onicecandidate = async (e) => {
-        if (e.candidate ) {
-          console.log("dest", destination);
+        if (e.candidate) {
           const { candidate, sdpMid } = e.candidate;
           ws.current?.send(
             JSON.stringify({
-              id: destination,
+              id: destination.current,
               type: "candidate",
               candidate,
               mid: sdpMid,
@@ -139,6 +139,7 @@ function App() {
       sdp: message.description,
       type: message.type as RTCSdpType,
     });
+    destination.current = id;
     const answer = await peerConnection.current.createAnswer();
     await peerConnection.current.setLocalDescription(answer);
     ws.current?.send(
@@ -243,6 +244,7 @@ function App() {
                 fileSaveButton.href = "#";
                 fileChunks.length = 0;
                 setReceivingFile(null);
+                setProgress(0);
                 receivingChannel.send("next_file");
               }, 1000);
             };
@@ -257,6 +259,7 @@ function App() {
               fileSaveButton.href = "#";
               fileChunks.length = 0;
               setReceivingFile(null);
+              setProgress(0);
               receivingChannel.send("next_file");
             };
           }
@@ -317,7 +320,6 @@ function App() {
     if (!dataChannel.current.onmessage) {
       dataChannel.current.addEventListener("message", (event: MessageEvent) => {
         if (currentFileIndex.current < files.length) {
-          console.log(currentFileIndex.current, files.length, "index len");
           sendFile(files[currentFileIndex.current]);
         } else {
           setTimeout(() => showToast("File transfer was successful"), 2000);
@@ -396,7 +398,7 @@ function App() {
 
   const handlePeerClick = async (peer: string) => {
     setRecieverDeviceType(peer.split("%")[1]);
-    setDestination(peer);
+    destination.current = peer;
     offerPeerConnection(peer);
   };
 
@@ -419,6 +421,7 @@ function App() {
 
       {!peerConnected ? (
         <PeerList
+          destination={destination.current}
           peers={peers}
           handlePeerClick={handlePeerClick}
           peerConnected={peerConnected}
@@ -433,7 +436,7 @@ function App() {
         <FileSendingSection
           progress={progress}
           fileIndex={fileIndex}
-          destination={destination}
+          destination={destination.current}
           files={files}
           sendFiles={sendFiles}
           setFiles={setFiles}

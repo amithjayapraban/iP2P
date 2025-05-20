@@ -5,10 +5,12 @@ interface PeerListProps {
   peers: string[];
   handlePeerClick: (peer: string) => void;
   peerConnected: boolean;
+  destination: string;
 }
 
 export const PeerList = ({
   peers,
+  destination,
   handlePeerClick,
   peerConnected,
 }: PeerListProps) => {
@@ -30,7 +32,7 @@ export const PeerList = ({
             className={` p-4 gap-2  shadow-sm  bg-bg rounded-3xl h-auto  animate-contentShow   text-textcolor  text-xs   `}
           >
             {" "}
-            {isConnecting ? "connecting" : ""}
+            {isConnecting && destination == peer ? "Connecting" : ""}
             <img
               height={128}
               width={128}

@@ -58,6 +58,7 @@ export const FileSendingSection = ({
           <div className="flex flex-wrap items-start mb-4 text-[rgba(0,0,0,.5)] gap-2">
             {files.map((file, index) => (
               <div
+               key={index}
                 className={`flex relative bg-gray ${
                   index >= fileIndex && "cursor-pointer  hover:bg-zinc-200"
                 } transition-colors duration-300    rounded p-2 gap-2 min-w-[30%] items-center  `}
