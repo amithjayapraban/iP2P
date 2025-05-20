@@ -28,14 +28,16 @@ interface FileTransferSectionProps {
   files: FileWithMetadata[];
   setFiles: React.Dispatch<React.SetStateAction<FileWithMetadata[]>>;
   fileIndex: number;
+  progress: number;
 }
 
-export const FileTransferSection = ({
+export const FileSendingSection = ({
   destination,
   files,
   sendFiles,
   setFiles,
   fileIndex,
+  progress,
 }: FileTransferSectionProps) => {
   const [isSending, setIsSending] = useState(false);
   useEffect(() => {
@@ -47,7 +49,6 @@ export const FileTransferSection = ({
   };
   return (
     <section className=" h-full  relative self-center w-full md:w-1/2 rounded-3xl  transition-[1] flex items-center justify-center  flex-col  text-xs text-textcolor  gap-1 animate-contentShow">
-      {/* <ProgressInPercentage /> */}
 
       {files.length > 0 ? (
         <div className="flex flex-col p-4 gap-2 border border-gray shadow-sm  bg-bg rounded-3xl w-3/4 h-auto  animate-contentShow">
@@ -57,12 +58,9 @@ export const FileTransferSection = ({
           <div className="flex flex-wrap items-start mb-4 text-[rgba(0,0,0,.5)] gap-2">
             {files.map((file, index) => (
               <div
-                className={`flex   ${
-                  index > fileIndex && "cursor-pointer hover:bg-zinc-200"
-                } transition-colors duration-300   bg-gray rounded p-2 gap-1 items-center  ${
-                  index < fileIndex &&
-                  "bg-brandgreen text-bg hover:bg-brandgreen"
-                } `}
+                className={`flex relative bg-gray ${
+                  index >= fileIndex && "cursor-pointer  hover:bg-zinc-200"
+                } transition-colors duration-300    rounded p-2 gap-2 min-w-[30%] items-center  `}
                 onClick={() =>
                   index > fileIndex &&
                   setFiles((prevFiles) =>
@@ -70,6 +68,16 @@ export const FileTransferSection = ({
                   )
                 }
               >
+                {index == fileIndex && (
+                  <span
+                    style={{ width: `${progress}%` }}
+                    id="progress-bar"
+                    className={`  h-1 rounded-bl bottom-0  -left-0   absolute bg-brandgreen`}
+                  ></span>
+                )}
+                {index < fileIndex && (
+                  <span className="h-1 rounded-b bottom-0  -left-0  w-full absolute bg-brandgreen "></span>
+                )}
                 <FileIcon height={14} width={14} />
                 <p className="mr-4 text-[.65rem] ">
                   {formatFileName(file.name)}
@@ -90,7 +98,9 @@ export const FileTransferSection = ({
             <button
               disabled={isSending}
               title="Send"
-              className={`${isSending&&"cursor-progress"} bg-brandgreen border-gray py-1 pl-3 pr-2  flex items-center transition-all duration-300 justify-center rounded-full text-bg gap-1 `}
+              className={`${
+                isSending && "cursor-progress"
+              } bg-brandgreen border-gray py-1 pl-3 pr-2  flex items-center transition-all duration-300 justify-center rounded-full text-bg gap-1 `}
               onClick={() => {
                 setIsSending(true);
                 sendFiles();
@@ -98,7 +108,7 @@ export const FileTransferSection = ({
             >
               {isSending ? (
                 <>
-                 Sending <span className="loader"></span>
+                  Sending <span className="loader"></span>
                 </>
               ) : (
                 <>
@@ -117,22 +127,19 @@ export const FileTransferSection = ({
               const { name, deviceType } = formatPeerName(destination);
               return (
                 <>
-                  {/* <div className="relative"> */}
                   <img
                     height={128}
                     width={128}
                     src={`/${destination.split("%")[1]}.svg`}
                     alt={`Device icon for ${destination.split("%")[1]}`}
                   />
-                  {/* <Wifi className="absolute  text-gray rounded-full p-1 left-1/2 top-1/3 -translate-x-3 " /> */}
-                  {/* </div> */}
+
                   <p className=" text-[var(--textgray)] -mt-4 text-[.5rem]">
                     {deviceType}
                   </p>
                   <p className=" text-[var(--textgray)] -mt-1 text-[.6rem]">
                     {name}
                   </p>
-                  {/* <p className="text-gray-500 text-[.6rem]"></p> */}
                 </>
               );
             })()}

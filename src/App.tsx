@@ -8,9 +8,9 @@ import { Analytics } from "@vercel/analytics/react";
 import { WebSocketMessage, FileWithMetadata } from "./types/app";
 import { Footer } from "./components/Footer";
 import { Toast } from "./components/Toast";
-import { ProgressBar } from "./components/ProgressBar";
 import { PeerList } from "./components/PeerList";
-import { FileTransferSection } from "./components/FileTransferSection";
+import { FileSendingSection } from "./components/FileSendingSection";
+import { FileReceivingSection } from "./components/FileReceivingSection";
 
 const CHUNK_SIZE = 64000; // 64 KB
 const BUFFER_SIZE = 1024 * 1024 * 4; // 4 MB
@@ -35,12 +35,6 @@ function App() {
   const initializeApp = () => {
     name.current = generateUsername("", 0, 8);
     setMyName(name.current);
-    const body = document.querySelector("body") as HTMLBodyElement;
-    body.setAttribute("data-theme", "dark");
-    // const themeColor: any = document.querySelector('meta[name="theme-color"]');
-    // const mode = body.getAttribute("data-theme");
-    // const color = mode == "dark" ? "#121212" : "#fafafa";
-    // themeColor.setAttribute("content", color);
     openSignaling();
   };
 
@@ -52,7 +46,51 @@ function App() {
   }, []);
 
   const ws = useRef<WebSocket | null>(null);
-  const peerConnection = useRef(new RTCPeerConnection(getIceServerConfig()));
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+
+  useEffect(() => {
+    if (!peerConnection.current) {
+      peerConnection.current = new RTCPeerConnection(getIceServerConfig());
+
+      peerConnection.current.onicecandidate = async (e) => {
+        if (e.candidate ) {
+          console.log("dest", destination);
+          const { candidate, sdpMid } = e.candidate;
+          ws.current?.send(
+            JSON.stringify({
+              id: destination,
+              type: "candidate",
+              candidate,
+              mid: sdpMid,
+            })
+          );
+        }
+      };
+
+      peerConnection.current.addEventListener(
+        "connectionstatechange",
+        (event) => {
+          if (
+            peerConnection.current?.connectionState === "disconnected" ||
+            peerConnection.current?.connectionState === "failed"
+          ) {
+            setPeerConnected(false);
+            console.error("WebRTC", peerConnection.current.connectionState);
+          }
+
+          if (peerConnection.current?.connectionState === "connected") {
+            setPeerConnected(true);
+            console.log("WebRTC", peerConnection.current.connectionState);
+          }
+        }
+      );
+    }
+
+    return () => {
+      peerConnection.current?.close();
+      peerConnection.current = null;
+    };
+  }, []);
 
   const openSignaling = () => {
     const device = getDeviceType();
@@ -60,8 +98,14 @@ function App() {
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => console.log("WebSocket Open");
-    ws.current.onerror = () => console.error("WebSocket Error");
-    ws.current.onclose = () => console.error("WebSocket Disconnected");
+    ws.current.onerror = () => {
+      setPeerConnected(false);
+      console.error("WebSocket Error");
+    };
+    ws.current.onclose = () => {
+      setPeerConnected(false);
+      console.error("WebSocket Disconnected");
+    };
     ws.current.onmessage = handleWebSocketMessage;
   };
 
@@ -90,13 +134,13 @@ function App() {
   };
 
   const handleOfferMessage = async (message: WebSocketMessage, id: string) => {
+    if (!peerConnection.current) return;
     await peerConnection.current.setRemoteDescription({
       sdp: message.description,
       type: message.type as RTCSdpType,
     });
     const answer = await peerConnection.current.createAnswer();
     await peerConnection.current.setLocalDescription(answer);
-    setDestination(id);
     ws.current?.send(
       JSON.stringify({
         id,
@@ -107,6 +151,7 @@ function App() {
   };
 
   const handleAnswerMessage = async (message: WebSocketMessage) => {
+    if (!peerConnection.current) return;
     await peerConnection.current.setRemoteDescription({
       sdp: message.description,
       type: message.type as RTCSdpType,
@@ -114,51 +159,128 @@ function App() {
   };
 
   const handleCandidateMessage = async (message: WebSocketMessage) => {
+    if (!peerConnection.current) return;
+
     try {
-      await peerConnection.current.addIceCandidate({
-        candidate: message.candidate,
-        sdpMid: message.mid,
-      });
+      if (
+        peerConnection.current.signalingState === "stable" ||
+        peerConnection.current.signalingState === "have-remote-offer"
+      ) {
+        await peerConnection.current.addIceCandidate({
+          candidate: message.candidate,
+          sdpMid: message.mid,
+        });
+      } else {
+        console.warn(
+          "Cannot add ICE candidate. Current signaling state:",
+          peerConnection.current.signalingState
+        );
+      }
     } catch (error) {
       console.error("Failed to add ICE candidate:", error);
     }
   };
+  const dataChannel = useRef<RTCDataChannel | null>(null);
 
-  const dataChannel = peerConnection.current.createDataChannel("mydata");
-  dataChannel.bufferedAmountLowThreshold = 1024 * 800;
-
-  peerConnection.current.onicecandidate = async (e) => {
-    // console.log(e, "once");
-
-    if (e.candidate) {
-      const { candidate, sdpMid } = e.candidate;
-      ws.current?.send(
-        JSON.stringify({
-          id: destination,
-          type: "candidate",
-          candidate,
-          mid: sdpMid,
-        })
-      );
-    }
-  };
-
-  peerConnection.current.addEventListener("connectionstatechange", (event) => {
-    if (
-      peerConnection.current.connectionState === "disconnected" ||
-      peerConnection.current.connectionState === "failed"
-    ) {
-      setPeerConnected(false);
-      console.error("WebRTC", peerConnection.current.connectionState);
+  useEffect(() => {
+    if (!dataChannel.current && peerConnection.current) {
+      dataChannel.current = peerConnection.current.createDataChannel("mydata");
+      dataChannel.current.bufferedAmountLowThreshold = 1024 * 800;
     }
 
-    if (peerConnection.current.connectionState === "connected") {
-      setPeerConnected(true);
-      console.log("WebRTC", peerConnection.current.connectionState);
-    }
-  });
+    return () => {
+      dataChannel.current?.close();
+      dataChannel.current = null;
+    };
+  }, []);
+
+  const [receivingFile, setReceivingFile] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!peerConnection.current) return;
+
+    peerConnection.current.ondatachannel = (e: RTCDataChannelEvent) => {
+      const receivingChannel: RTCDataChannel = e.channel;
+      const fileChunks: BlobPart[] = [];
+      let blobUrl: string | null = null;
+      let file: Blob | null = null;
+      let total_chunks: number = 0;
+
+      const messageHandler = (e: MessageEvent) => {
+        if (e.data.toString()) {
+          if (e.data.toString().includes("len")) {
+            total_chunks = Number(e.data.toString().split("%")[1]);
+          }
+          if (e.data.toString().includes("type:")) {
+            setReceivingFile(e.data.toString().substring(5));
+          }
+        }
+
+        if (e.data.toString() === MESSAGE_COMPLETED) {
+          [offset.current, total_chunks] = [0, 0];
+
+          console.log("File Received");
+
+          file = new Blob(fileChunks);
+          blobUrl = URL.createObjectURL(file);
+
+          const fileSaveButton = document.getElementById(
+            "fileSaveButton"
+          ) as HTMLAnchorElement;
+
+          const fileCancelButton = document.getElementById(
+            "fileCancelButton"
+          ) as HTMLElement;
+
+          if (fileSaveButton) {
+            fileSaveButton.href = blobUrl;
+            fileSaveButton.onclick = () => {
+              console.log("File saved successfully!");
+              setTimeout(() => {
+                blobUrl && URL.revokeObjectURL(blobUrl);
+                file = null;
+                blobUrl = null;
+                fileSaveButton.href = "#";
+                fileChunks.length = 0;
+                setReceivingFile(null);
+                receivingChannel.send("next_file");
+              }, 1000);
+            };
+          }
+
+          if (fileCancelButton) {
+            fileCancelButton.onclick = () => {
+              console.log("Skipped saving a file");
+              blobUrl && URL.revokeObjectURL(blobUrl);
+              file = null;
+              blobUrl = null;
+              fileSaveButton.href = "#";
+              fileChunks.length = 0;
+              setReceivingFile(null);
+              receivingChannel.send("next_file");
+            };
+          }
+        }
+        if (
+          e.data.toString() !== MESSAGE_COMPLETED &&
+          !e.data.toString().includes("type") &&
+          e.data.toString() !== `undefined` &&
+          !e.data.toString().includes("len")
+        ) {
+          offset.current += CHUNK_SIZE;
+          updateProgress(total_chunks);
+          fileChunks.push(e.data);
+        }
+      };
+
+      receivingChannel.addEventListener("message", (event: MessageEvent) => {
+        messageHandler(event);
+      });
+    };
+  }, [peerConnection.current]);
 
   async function offerPeerConnection(id: string) {
+    if (!peerConnection.current) return;
     const offer = await peerConnection.current.createOffer();
     await peerConnection.current.setLocalDescription(offer);
 
@@ -174,7 +296,7 @@ function App() {
   const [files, setFiles] = useState<FileWithMetadata[]>([]);
   const [fileIndex, setFileIndex] = useState(0);
   const currentFileIndex = useRef(0);
-  // const filesRef = useRef<FileWithMetadata[]>(files);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     currentFileIndex.current = 0;
@@ -186,33 +308,23 @@ function App() {
   }, [fileIndex]);
 
   const sendFiles = () => {
-    const progressBar = document.getElementById(
-      "progress-bar"
-    ) as HTMLSpanElement;
-    progressBar.style.width = `0%`;
-    progressBar.classList.remove("w-0");
     sendFile(files[currentFileIndex.current]);
+    if (!dataChannel.current) {
+      console.error("Data channel is not initialized");
+      return;
+    }
 
-    // if (filesRef.current.length > 0) {
-    //   let fileToSend = filesRef.current[0];
-    //   setFiles((prevFiles) => prevFiles.slice(1));
-    //   sendFile(fileToSend);
-    // }
-
-    dataChannel.addEventListener("message", (event: MessageEvent) => {
-      if (currentFileIndex.current < files.length) {
-        console.log(currentFileIndex.current, files.length, "index len");
-        sendFile(files[currentFileIndex.current]);
-      } else {
-        setTimeout(() => showToast("File transfer was successful"), 500);
-        setTimeout(() => setFiles([]), 3000);
-      }
-      const prog = document.getElementById("progress-bar") as HTMLSpanElement;
-      prog.style.width = "0";
-
-      // files.length > 0 && send(files.shift());
-      // files.length > 0 && console.log(files[0]);
-    });
+    if (!dataChannel.current.onmessage) {
+      dataChannel.current.addEventListener("message", (event: MessageEvent) => {
+        if (currentFileIndex.current < files.length) {
+          console.log(currentFileIndex.current, files.length, "index len");
+          sendFile(files[currentFileIndex.current]);
+        } else {
+          setTimeout(() => showToast("File transfer was successful"), 2000);
+          setTimeout(() => setFiles([]), 1000);
+        }
+      });
+    }
   };
 
   const offset = useRef(0);
@@ -220,27 +332,29 @@ function App() {
   const file = useRef<FileWithMetadata | null>(null);
 
   const sendFile = (f: FileWithMetadata) => {
+    if (!dataChannel.current) {
+      console.error("Data channel is not initialized");
+      return;
+    }
+
     file.current = f;
     offset.current = 0;
-    dataChannel.send(`len%${f.size}`);
-    dataChannel.send(`type:${file.current.name}`);
+    dataChannel.current.send(`len%${f.size}`);
+    dataChannel.current.send(`type:${file.current.name}`);
     sendFileChunks(file.current);
   };
 
   async function sendFileChunks(file: FileWithMetadata) {
+    if (!dataChannel.current) {
+      console.error("Data channel is not initialized");
+      return;
+    }
     const bufferSize = ["iPhone", "Android"].includes(recieverDeviceType)
       ? BUFFER_SIZE
       : BUFFER_SIZE;
-    const progressBar = document.getElementById(
-      "progress-bar"
-    ) as HTMLSpanElement;
-    const progressPercentage = document.getElementById(
-      "percentage"
-    ) as HTMLElement;
-    progressBar.style.opacity = "1";
 
     while (offset.current < file.size) {
-      while (dataChannel.bufferedAmount > bufferSize) {
+      while (dataChannel.current.bufferedAmount > bufferSize) {
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
       const chunk = file.slice(offset.current, offset.current + CHUNK_SIZE);
@@ -251,32 +365,26 @@ function App() {
         };
         reader.readAsArrayBuffer(chunk);
       });
-      dataChannel.send(arrayBuffer);
-      updateProgressBar(progressBar, progressPercentage, file.size);
+      dataChannel.current.send(arrayBuffer);
       offset.current += CHUNK_SIZE;
+      updateProgress(file.size);
     }
     setFileIndex((prevIndex) => prevIndex + 1);
-    finalizeFileTransfer(progressBar, progressPercentage);
+    finalizeFileTransfer();
   }
 
-  const updateProgressBar = (
-    progressBar: HTMLElement,
-    progressPercentage: HTMLElement,
-    fileSize: number
-  ) => {
-    progressBar.style.width = `${(offset.current / fileSize) * 100}%`;
-    let percent = Math.min((offset.current / fileSize) * 100, 100);
-    // progressPercentage.textContent = `${percent.toFixed(1)}%`;
+  const updateProgress = (fileSize: number) => {
+    setProgress(Math.min((offset.current / fileSize) * 100, 100));
   };
 
-  const finalizeFileTransfer = (
-    progressBar: HTMLElement,
-    progressPercentage: HTMLElement
-  ) => {
-    dataChannel.send(MESSAGE_COMPLETED);
-    // progressPercentage.textContent = `100%`;
+  const finalizeFileTransfer = () => {
+    if (!dataChannel.current) {
+      console.error("Data channel is not initialized");
+      return;
+    }
+    dataChannel.current.send(MESSAGE_COMPLETED);
     offset.current = 0;
-    resetProgressBar(progressBar, progressPercentage);
+    setProgress(0);
   };
 
   const showToast = (message: string) => {
@@ -286,114 +394,44 @@ function App() {
     setTimeout(() => toast.classList.toggle("completed_animation"), 2000);
   };
 
-  const resetProgressBar = (
-    progressBar: HTMLElement,
-    progressPercentage: HTMLElement
-  ) => {
-    setTimeout(() => {
-      // progressPercentage.textContent = ``;
-      progressBar.classList.add("w-0");
-      progressBar.style.width = `0%`;
-    }, 1000);
-  };
-
-  const type = useRef("");
-
-  peerConnection.current.ondatachannel = (e: RTCDataChannelEvent) => {
-    const receivingChannel: RTCDataChannel = e.channel;
-    const fileChunks: BlobPart[] = [];
-    let blobUrl: string | null = null;
-    let file: Blob | null = null;
-    let total_chunks: number = 0;
-
-    const progressPercentage = document.getElementById(
-      "percentage"
-    ) as HTMLElement;
-    const progressBar = document.getElementById(
-      "progress-bar"
-    ) as HTMLSpanElement;
-
-    const messageHandler = (e: MessageEvent) => {
-      if (e.data.toString()) {
-        if (e.data.toString().includes("len")) {
-          total_chunks = Number(e.data.toString().split("%")[1]);
-        }
-        if (e.data.toString().includes("type:")) {
-          console.log(e.data, "type");
-          type.current = e.data.toString();
-        }
-      }
-
-      if (e.data.toString() === MESSAGE_COMPLETED) {
-        [offset.current, total_chunks] = [0, 0];
-        file = new Blob(fileChunks);
-        blobUrl = URL.createObjectURL(file);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = type.current.substring(5);
-        document.body.appendChild(link);
-        link.dispatchEvent(
-          new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-          })
-        );
-        showToast(" File transfer was successful");
-
-        setTimeout(() => {
-          blobUrl && URL.revokeObjectURL(blobUrl);
-          file = null;
-          blobUrl = null;
-          fileChunks.length = 0;
-          document.body.removeChild(link);
-          type.current = "";
-          receivingChannel.send("next_file");
-          resetProgressBar(progressBar, progressPercentage);
-        }, 1000);
-      }
-      if (
-        e.data.toString() !== MESSAGE_COMPLETED &&
-        !e.data.toString().includes("type") &&
-        e.data.toString() !== `undefined` &&
-        !e.data.toString().includes("len")
-      ) {
-        offset.current += CHUNK_SIZE;
-        updateProgressBar(progressBar, progressPercentage, total_chunks);
-        fileChunks.push(e.data);
-      }
-    };
-    receivingChannel.addEventListener("message", (event: MessageEvent) => {
-      messageHandler(event);
-    });
-  };
-
-  const handlePeerClick = (peer: string) => {
+  const handlePeerClick = async (peer: string) => {
     setRecieverDeviceType(peer.split("%")[1]);
-    offerPeerConnection(peer);
     setDestination(peer);
+    offerPeerConnection(peer);
   };
+
   return (
     <div className="flex flex-col  shadow-sm  app relative text-textc  h-[100dvh] ">
       <Analytics />
       <Toast />
-
       <section className="flex items-center p-6 justify-between w-full ">
         <Logo baseURL={baseURL} peerConnected={peerConnected} />
         <div className="flex items-center md:gap-4 gap-4">
-          {peerConnected && (
-            <span className="w-2 h-2 bg-brandgreen rounded-full"></span>
-          )}
+          <span
+            className={`w-2 h-2  ${
+              peerConnected ? "bg-brandgreen" : "bg-orange-600"
+            }  rounded-full`}
+          ></span>
+
           <Info />
         </div>
       </section>
 
-      <ProgressBar />
-
       {!peerConnected ? (
-        <PeerList peers={peers} handlePeerClick={handlePeerClick} />
+        <PeerList
+          peers={peers}
+          handlePeerClick={handlePeerClick}
+          peerConnected={peerConnected}
+        />
+      ) : receivingFile ? (
+        <FileReceivingSection
+          receivingFile={receivingFile}
+          setReceivingFile={setReceivingFile}
+          progress={progress}
+        />
       ) : (
-        <FileTransferSection
+        <FileSendingSection
+          progress={progress}
           fileIndex={fileIndex}
           destination={destination}
           files={files}
@@ -401,22 +439,7 @@ function App() {
           setFiles={setFiles}
         />
       )}
-      {/* <PeerList
-        peers={[
-          "testing%iPhone",
-          "testing2%Mac",
-          "testing%iPhone",
-          "testing2%Mac",
-          "testing2%iPad",
-        ]}
-        handlePeerClick={handlePeerClick}
-      /> */}
-      {/* <FileTransferSection
-        destination={"Amith%Mac"}
-        files={files}
-        sendFiles={sendFiles}
-        setFiles={setFiles}
-      /> */}
+
       <Footer myName={myName} />
     </div>
   );

@@ -1,4 +1,3 @@
-import { QuestionMarkCircledIcon, QuestionMarkIcon } from "@radix-ui/react-icons";
 import { AtSign, BadgeInfo, BadgeInfoIcon, CircleHelp, EllipsisVertical, Github, HelpCircleIcon, InfinityIcon, InfoIcon, MoreHorizontalIcon } from "lucide-react";
 import { Dialog } from "radix-ui";
 export default function Info() {
@@ -8,7 +7,7 @@ export default function Info() {
         <MoreHorizontalIcon />
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[rgba(255,255,255,0.5)]  data-[state=open]:animate-overlayShow" />
+        <Dialog.Overlay className="fixed inset-0 bg-[rgba(0,0,0,0.2)]   data-[state=open]:animate-overlayShow" />
         <Dialog.Content className="text-textcolor outline-none bg-bg border border-[var(--gray)]  p-4  rounded-xl md:min-w-[30vw]  min-w-[70vw] break-words md:max-w-[40vw] max-w-[80vw] md:right-12 right-12 md:top-12 top-12  absolute z-[99] data-[state=open]:animate-contentShow">
           <ul className="pl-1 text-xs  flex flex-col gap-1">
             <li className=" border-b border-[var(--gray)] pb-1 ">
