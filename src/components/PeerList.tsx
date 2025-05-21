@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { formatPeerName } from "../utils/formatPeerName";
 
+
 interface PeerListProps {
   peers: string[];
   handlePeerClick: (peer: string) => void;
@@ -29,10 +30,8 @@ export const PeerList = ({
               handlePeerClick(peer);
               setIsConnecting(true);
             }}
-            className={` p-4 gap-2  shadow-sm  bg-bg rounded-3xl h-auto  animate-contentShow   text-textcolor  text-xs   `}
+            className={` p-6  flex flex-col items-center shadow-sm  bg-bg rounded-3xl h-auto  animate-contentShow   text-textcolor  text-xs   `}
           >
-            {" "}
-            {isConnecting && destination == peer ? "Connecting" : ""}
             <img
               height={128}
               width={128}
@@ -43,8 +42,11 @@ export const PeerList = ({
               {deviceType}
             </p>
             <p className=" text-[var(--textgray)] -mt-1 text-[.6rem]">{name}</p>
-            {/* <p className="text-textc">{name}</p>
-            <p className="text-gray-500 text-[.6rem]">{deviceType}</p> */}
+            {isConnecting && destination == peer ? (
+              <div className="connecting-animation mt-2"></div>
+            ) : (
+              <div className="h-[15px] mt-2"></div>
+            )}
           </button>
         );
       })}

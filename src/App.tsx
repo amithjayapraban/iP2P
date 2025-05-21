@@ -244,7 +244,6 @@ function App() {
                 fileSaveButton.href = "#";
                 fileChunks.length = 0;
                 setReceivingFile(null);
-                setProgress(0);
                 receivingChannel.send("next_file");
               }, 1000);
             };
@@ -302,6 +301,7 @@ function App() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    setProgress(0);
     currentFileIndex.current = 0;
     setFileIndex(0);
   }, [files]);
@@ -414,7 +414,6 @@ function App() {
               peerConnected ? "bg-brandgreen" : "bg-orange-600"
             }  rounded-full`}
           ></span>
-
           <Info />
         </div>
       </section>
@@ -442,7 +441,6 @@ function App() {
           setFiles={setFiles}
         />
       )}
-
       <Footer myName={myName} />
     </div>
   );

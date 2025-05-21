@@ -73,6 +73,25 @@ input[type="file"] {
   position: relative;
 }
 
+.connecting-animation /* HTML: <div class="loader"></div> */
+ {
+  width: 20px;
+  height: 15px;
+  --m:no-repeat linear-gradient(90deg,#000 40%,#0000 0);
+  -webkit-mask: 
+    var(--m) calc(0*100%/4) 100%/calc(100%/6) calc(1*100%/5),
+    var(--m) calc(1*100%/4) 100%/calc(100%/5) calc(2*100%/5),
+    var(--m) calc(2*100%/4) 100%/calc(100%/5) calc(3*100%/5),
+    var(--m) calc(3*100%/4) 100%/calc(100%/5) calc(4*100%/5);
+  background: linear-gradient(var(--brandgreen)) left/0% 100% no-repeat var(--gray);
+  animation: l14 1s infinite steps(6);
+}
+
+@keyframes l14 {
+  100% {background-size: 120% 100%}
+}
+
+
 .app {
   background-color: var(--bg);
   background: repeating-radial-gradient(
